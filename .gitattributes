@@ -1,0 +1,15 @@
+# Source files: stored with LF, whatever the contributor's platform.
+* text=auto
+
+# Documents and drawings: never touch line endings. Some PDFs are entirely ASCII, so
+# git can mistake them for text, and rewriting their line endings corrupts them.
+*.pdf  binary
+*.docx binary
+*.xlsx binary
+*.xls  binary
+*.dwg  binary
+*.png  binary
+*.jpg  binary
+*.dxf  -text
+*.csv  -text
+sample-docs/*.txt -text

@@ -1,0 +1,32 @@
+node_modules/
+client/node_modules/
+client/dist/
+client/build/
+server/node_modules/
+server/.env
+.env
+
+# Runtime logs
+*.log
+*.err
+
+# Auto-generated auth secret (never commit)
+server/data/.jwt-secret
+
+# Semantic embedding cache — only used when RAG_SEMANTIC=on; rebuilt on demand.
+# Kept out of the repo/deploy to stay lightweight (it is ~50 MB).
+server/rag/embcache/store.json
+
+# Pre-loaded document library text cache — regenerated on demand.
+server/data/library-cache.json
+
+# Runtime data — created on first use and populated by users. A new installation
+# must start clean: none of this may ever ship pre-populated.
+server/data/users.json
+server/data/lessons.json
+server/data/inspections.json
+server/data/feedback.json
+server/data/audit.json
+server/data/interactions.json
+server/data/rulebooks/
+server/data/repository/

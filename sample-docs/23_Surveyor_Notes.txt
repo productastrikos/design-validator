@@ -1,0 +1,11 @@
+SURVEYOR ATTENDANCE NOTES - Hull 101
+SAMPLE DOCUMENT - fictitious data for demonstration only
+
+Date: 16.09.2026
+Attended: emergency generator blackout test, fitting-out berth.
+
+1. First automatic start failed. The second attempt succeeded.
+2. Time to energise the emergency switchboard was recorded as 58 seconds. Requirement is 45 seconds.
+3. Test to be repeated after the yard checks the starting battery and the control relay.
+4. Certificates for the emergency generator engine were seen and found in order.
+5. The surveyor asked for the updated load analysis, since the emergency generator rating is under review.

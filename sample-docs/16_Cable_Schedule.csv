@@ -1,0 +1,15 @@
+Cable No,From,To,Type,Size,Length (m),Service
+P-001,DG-1,MSB,"Flame retardant, armoured",3 x 185 mm2,28,Generator power
+P-002,DG-2,MSB,"Flame retardant, armoured",3 x 185 mm2,24,Generator power
+P-003,DG-3,MSB,"Flame retardant, armoured",3 x 185 mm2,21,Generator power
+P-010,MSB,Bow thruster starter,"Flame retardant, armoured",3 x 240 mm2,36,Thruster power
+P-011,MSB,Bilge pump 1,"Flame retardant, armoured",3 x 10 mm2,14,Pump power
+P-012,MSB,Fire pump 1,"Flame retardant, armoured",3 x 16 mm2,16,Pump power
+P-013,MSB,ESB,"Fire resistant, armoured",3 x 70 mm2,42,Interconnector
+P-020,EG,ESB,"Fire resistant, armoured",3 x 50 mm2,6,Emergency generator power
+P-021,ESB,Emergency fire pump,"Fire resistant, armoured",3 x 16 mm2,33,Pump power
+P-022,ESB,Steering gear 2,"Fire resistant, armoured",3 x 10 mm2,38,Steering power
+L-101,LDB,Accommodation lighting,Flame retardant,3 x 2.5 mm2,65,Lighting
+S-201,Bridge LAN switch,ECDIS workstation 1,"Screened data, Cat 6",4 pair,12,Network
+S-202,Bridge LAN switch,ECDIS workstation 2,"Screened data, Cat 6",4 pair,14,Network
+A-301,Amplifier rack,Weather deck loudspeakers,"Fire resistant, screened",2 x 1.5 mm2,85,Public address
