@@ -6,7 +6,7 @@ import { saveArtifact } from '../services/docStore';
 function SaveButton({ onClick, saved }) {
   return (
     <button type="button" onClick={onClick}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-500/25">
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-success-bg text-app-success border border-app-success-border text-[11px] font-semibold hover:bg-app-success-bg">
       {saved ? '✓ Saved' : 'Save'}
     </button>
   );
@@ -30,12 +30,12 @@ function ModeToggle({ mode, setMode }) {
             onClick={() => setMode(t.id)}
             className={`text-left rounded-xl border px-4 py-3 transition-colors ${
               active
-                ? 'bg-gradient-to-r from-sky-500/15 to-indigo-500/15 border-sky-500/40'
-                : 'bg-app-panel border-app-border hover:border-slate-600'
+                ? 'bg-app-accent-bg border-app-accent-border'
+                : 'bg-app-panel border-app-border hover:border-app-border'
             }`}
           >
-            <div className={`text-sm font-bold ${active ? 'text-white' : 'text-slate-300'}`}>{t.label}</div>
-            <div className="text-[10px] text-slate-400 mt-0.5">{t.desc}</div>
+            <div className={`text-sm font-bold ${active ? 'text-app-text' : 'text-app-text'}`}>{t.label}</div>
+            <div className="text-[10px] text-app-muted mt-0.5">{t.desc}</div>
           </button>
         );
       })}
@@ -116,20 +116,20 @@ function BomModule() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-dashed border-slate-600 p-3 space-y-2">
-          <div className="text-[11px] font-semibold text-slate-300">Electrical Load Analysis workbook (optional) — AI estimates Generator &amp; Transformer capacity/quantity from it and adds them as BOM rows</div>
+        <div className="rounded-lg border border-dashed border-app-border p-3 space-y-2">
+          <div className="text-[11px] font-semibold text-app-text">Electrical Load Analysis workbook (optional) — AI estimates Generator &amp; Transformer capacity/quantity from it and adds them as BOM rows</div>
           <input ref={elaFileRef} type="file" accept=".xls,.xlsx,.xlsm" className="hidden"
             onChange={e => { const f = e.target.files?.[0]; if (f) setElaFile(f); e.target.value = ''; }} />
           <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => elaFileRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
               {elaFile ? 'Change ELA workbook' : 'Upload ELA workbook (.xls / .xlsx)'}
             </button>
             {elaFile && (
-              <span className="text-[10px] px-2 py-1 rounded bg-sky-500/10 text-sky-300 border border-sky-500/30 flex items-center gap-1">
+              <span className="text-[10px] px-2 py-1 rounded bg-app-accent-bg text-app-accent border border-app-accent-border flex items-center gap-1">
                 {elaFile.name}
-                <button type="button" onClick={() => setElaFile(null)} className="text-sky-400/70 hover:text-red-300">×</button>
+                <button type="button" onClick={() => setElaFile(null)} className="text-app-accent hover:text-app-danger">×</button>
               </span>
             )}
           </div>
@@ -143,7 +143,7 @@ function BomModule() {
 
         <RunButton onClick={run} busy={busy} busyLabel="Generating BOM…">Generate BOM</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Reading the sources section-by-section{elaFile ? ' and sizing Generator/Transformer capacity from the ELA workbook' : ''}…</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Reading the sources section-by-section{elaFile ? ' and sizing Generator/Transformer capacity from the ELA workbook' : ''}…</div>}
       </Card>
 
       {bom?.elaSummary && (
@@ -157,7 +157,7 @@ function BomModule() {
           {bom.elaNotes?.length > 0 && (
             <div className="space-y-1">
               {bom.elaNotes.map((n, i) => (
-                <div key={i} className="text-[10px] text-slate-400 px-2 py-1 rounded bg-slate-900/60 border border-slate-700">{n}</div>
+                <div key={i} className="text-[10px] text-app-muted px-2 py-1 rounded bg-app-surface-soft border border-app-border">{n}</div>
               ))}
             </div>
           )}
@@ -217,11 +217,11 @@ function parseSotrBlocks(md) {
 function SotrDocView({ content }) {
   const blocks = parseSotrBlocks(content);
   return (
-    <div className="rounded-lg bg-white text-slate-900 border border-app-border p-5 md:p-8 max-h-[62vh] overflow-y-auto space-y-2 shadow-inner">
+    <div className="rounded-lg bg-astrikos-paper text-astrikos-carbon border border-app-border p-5 md:p-8 max-h-[62vh] overflow-y-auto space-y-2 shadow-inner">
       {blocks.map((b, i) => {
-        if (b.t === 'h1') return <h1 key={i} className="text-center text-lg md:text-xl font-bold text-[#14305a] border-b-2 border-[#14305a] pb-2 mb-3 uppercase tracking-tight">{b.text}</h1>;
-        if (b.t === 'h2') return <h2 key={i} className="text-sm md:text-base font-bold text-[#14305a] mt-5 mb-1.5 border-b border-slate-300 pb-1">{b.text}</h2>;
-        if (b.t === 'h3') return <h3 key={i} className="text-[13px] font-semibold text-[#1f3b63] mt-3 mb-1">{b.text}</h3>;
+        if (b.t === 'h1') return <h1 key={i} className="text-center text-lg md:text-xl font-bold text-astrikos-ink border-b-2 border-astrikos-ink pb-2 mb-3 uppercase tracking-tight">{b.text}</h1>;
+        if (b.t === 'h2') return <h2 key={i} className="text-sm md:text-base font-bold text-astrikos-ink mt-5 mb-1.5 border-b border-astrikos-mist pb-1">{b.text}</h2>;
+        if (b.t === 'h3') return <h3 key={i} className="text-[13px] font-semibold text-astrikos-ink mt-3 mb-1">{b.text}</h3>;
         if (b.t === 'ul') return <ul key={i} className="list-disc pl-6 text-[12px] leading-relaxed space-y-0.5">{b.items.map((it, j) => <li key={j}>{it}</li>)}</ul>;
         if (b.t === 'p')  return <p key={i} className="text-[12px] leading-relaxed">{b.text}</p>;
         if (b.t === 'table') {
@@ -233,14 +233,14 @@ function SotrDocView({ content }) {
               <table className="w-full border-collapse text-[11px]">
                 <thead>
                   <tr>{b.cols.map((c, j) => (
-                    <th key={j} className="bg-[#14305a] text-white border border-[#2b4a7a] px-2 py-1.5 text-left font-semibold align-top">{c}</th>
+                    <th key={j} className="bg-astrikos-ink text-white border border-astrikos-iris px-2 py-1.5 text-left font-semibold align-top">{c}</th>
                   ))}</tr>
                 </thead>
                 <tbody>
                   {b.rows.map((r, ri) => (
-                    <tr key={ri} className="odd:bg-slate-50">
+                    <tr key={ri}>
                       {b.cols.map((_, ci) => (
-                        <td key={ci} className={`border border-slate-300 px-2 py-1.5 align-top ${isClauseTable && ci === 0 ? 'whitespace-nowrap font-medium text-slate-600 w-14' : ''} ${isClauseTable && ci === b.cols.length - 1 ? 'w-40 text-slate-400' : ''}`}>
+                        <td key={ci} className={`border border-astrikos-mist px-2 py-1.5 align-top ${isClauseTable && ci === 0 ? 'whitespace-nowrap font-medium text-astrikos-steel w-14' : ''} ${isClauseTable && ci === b.cols.length - 1 ? 'w-40 text-slate-400' : ''}`}>
                           {r[ci] || ''}
                         </td>
                       ))}
@@ -316,25 +316,25 @@ function SotrModule() {
         </div>
         <RunButton onClick={run} busy={busy} busyLabel="Drafting SOTR…">Generate SOTR</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Harvesting technical requirements section-by-section and drafting the SOTR in tender format…</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Harvesting technical requirements section-by-section and drafting the SOTR in tender format…</div>}
       </Card>
 
       {sotr && (
         <Card title="Statement of Technical Requirements" desc="Generated in a standard tender format. Review the formatted document (or edit the raw text), Save it, then download. Edits are reflected in the preview and every export.">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="inline-flex rounded-lg border border-app-border overflow-hidden text-[11px] font-semibold">
-              <button onClick={() => setView('formatted')} className={`px-3 py-1.5 ${view === 'formatted' ? 'bg-sky-500/20 text-sky-200' : 'bg-app-panel text-slate-400 hover:text-slate-200'}`}>Formatted</button>
-              <button onClick={() => setView('edit')} className={`px-3 py-1.5 border-l border-app-border ${view === 'edit' ? 'bg-sky-500/20 text-sky-200' : 'bg-app-panel text-slate-400 hover:text-slate-200'}`}>Edit text</button>
+              <button onClick={() => setView('formatted')} className={`px-3 py-1.5 ${view === 'formatted' ? 'bg-app-accent-bg text-app-accent' : 'bg-app-panel text-app-muted hover:text-app-text'}`}>Formatted</button>
+              <button onClick={() => setView('edit')} className={`px-3 py-1.5 border-l border-app-border ${view === 'edit' ? 'bg-app-accent-bg text-app-accent' : 'bg-app-panel text-app-muted hover:text-app-text'}`}>Edit text</button>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <SaveButton onClick={saveSotr} saved={saved} />
-              <button onClick={() => download('word')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[11px] font-semibold hover:bg-sky-500/25 disabled:opacity-40">
+              <button onClick={() => download('word')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-accent-bg text-app-accent border border-app-accent-border text-[11px] font-semibold hover:bg-app-accent-bg disabled:opacity-40">
                 {dlBusy ? <Spinner /> : null} Download Word
               </button>
-              <button onClick={() => download('pdf')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-[11px] font-semibold hover:bg-red-500/25 disabled:opacity-40">
+              <button onClick={() => download('pdf')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-danger-bg text-app-danger border border-app-danger-border text-[11px] font-semibold hover:bg-app-danger-bg disabled:opacity-40">
                 {dlBusy ? <Spinner /> : null} Download PDF
               </button>
-              <button onClick={() => download('txt')} className="px-3 py-1.5 rounded-lg bg-slate-700/40 text-slate-300 border border-slate-600 text-[11px] font-semibold hover:bg-slate-700/70">Download TXT</button>
+              <button onClick={() => download('txt')} className="px-3 py-1.5 rounded-lg bg-app-surface-raised text-app-text border border-app-border text-[11px] font-semibold hover:bg-app-surface-raised">Download TXT</button>
             </div>
           </div>
 
@@ -344,11 +344,11 @@ function SotrModule() {
             <textarea
               value={sotr.content}
               onChange={(e) => setSotr(s => ({ ...s, content: e.target.value }))}
-              className="w-full max-h-[55vh] min-h-[40vh] overflow-y-auto rounded-lg bg-slate-950/40 border border-app-border p-4 text-[12px] text-slate-200 leading-relaxed resize-y font-mono"
+              className="w-full max-h-[55vh] min-h-[40vh] overflow-y-auto rounded-lg bg-app-surface-soft border border-app-border p-4 text-[12px] text-app-text leading-relaxed resize-y font-mono"
             />
           )}
 
-          {sotr.citations?.length > 0 && <div className="text-[10px] text-slate-500">Grounded in: {sotr.citations.join(' · ')}</div>}
+          {sotr.citations?.length > 0 && <div className="text-[10px] text-app-muted">Grounded in: {sotr.citations.join(' · ')}</div>}
           <FeedbackBar module="sotr" subject={`SOTR (${sources.map(s => s.name).join(', ')})`} />
         </Card>
       )}

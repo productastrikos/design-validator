@@ -945,6 +945,9 @@ app.post('/api/export/xlsx', authenticate, async (req, res) => {
 // Produces an editable Word (.doc) file. Used by the Converter, Document Worker,
 // BOM and SOTR generators.
 // ─────────────────────────────────────────────────────────────────────────────
+// Browser-built exports (PDF, PNG) are recorded here by the audit middleware.
+app.post('/api/export/log', authenticate, (req, res) => res.json({ ok: true }));
+
 app.post('/api/export/word', authenticate, (req, res) => {
   try {
     const { title = 'Document', subtitle = '', text, columns, rows, blocks, filename } = req.body || {};

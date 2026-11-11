@@ -10,6 +10,8 @@ wording will vary from run to run, so treat them as a checklist rather than exac
 
 ## Quick start
 
+For a full presenter script with sample questions, see [DEMO_GUIDE.md](DEMO_GUIDE.md).
+
 1. Sign in and open **Document Intelligence**.
 2. Upload every file in this folder at once. Each file's type should be detected automatically,
    as shown in the table below.

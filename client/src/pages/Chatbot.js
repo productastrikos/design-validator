@@ -55,24 +55,24 @@ function Message({ msg, onSend }) {
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-        isUser ? 'bg-slate-700 text-slate-200' : 'bg-gradient-to-br from-sky-500 to-indigo-500 text-white shadow-lg'
+        isUser ? 'bg-app-surface-raised text-app-text' : 'bg-app-btn text-app-btn-text shadow-lg'
       }`}>
         {isUser ? 'U' : 'AI'}
       </div>
       <div className={`max-w-3xl ${isUser ? 'items-end' : 'items-start'} flex flex-col`}>
         <div className={`rounded-2xl px-4 py-2.5 ${
-          isUser ? 'bg-slate-700/60 text-slate-100 rounded-tr-sm' : 'bg-app-panel border border-app-border rounded-tl-sm'
+          isUser ? 'bg-app-surface-raised text-app-text rounded-tr-sm' : 'bg-app-panel border border-app-border rounded-tl-sm'
         }`}>
           <RichText text={msg.content} />
           {!isUser && msg.citations && msg.citations.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {msg.citations.map((c, i) => (
-                <span key={i} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-300 border border-violet-500/30">{c}</span>
+                <span key={i} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-app-violet-bg text-app-advisory-soft border border-app-advisory-border">{c}</span>
               ))}
             </div>
           )}
           {!isUser && msg.contextUsed > 0 && (
-            <div className="mt-1.5 text-[9px] text-slate-600 flex items-center gap-1">
+            <div className="mt-1.5 text-[10px] text-app-faint flex items-center gap-1">
               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
               {msg.contextUsed} KB chunks retrieved
             </div>
@@ -80,11 +80,11 @@ function Message({ msg, onSend }) {
           {/* Follow-up question suggestions (Part-E #1: support follow-up questions) */}
           {!isUser && msg.followups?.length > 0 && (
             <div className="mt-2.5 pt-2 border-t border-app-border">
-              <div className="text-[9px] uppercase tracking-widest text-slate-600 font-bold mb-1.5">Follow-up questions</div>
+              <div className="text-[10px] uppercase tracking-widest text-app-faint font-bold mb-1.5">Follow-up questions</div>
               <div className="flex flex-wrap gap-1.5">
                 {msg.followups.map((f, i) => (
                   <button key={i} onClick={() => onSend && onSend(f)}
-                    className="text-left text-[10px] px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-app-border hover:bg-sky-500/[0.06] hover:border-sky-500/30 text-slate-300">
+                    className="text-left text-[10px] px-2.5 py-1.5 rounded-lg bg-app-surface-soft border border-app-border hover:bg-app-accent-bg hover:border-app-accent-border text-app-text">
                     {f}
                   </button>
                 ))}
@@ -92,7 +92,7 @@ function Message({ msg, onSend }) {
             </div>
           )}
         </div>
-        <div className="text-[9px] text-slate-600 mt-1 px-2">{msg.timestamp}</div>
+        <div className="text-[10px] text-app-faint mt-1 px-2">{msg.timestamp}</div>
         {showFeedback && (
           <div className="w-full max-w-3xl px-2">
             <FeedbackBar module="chatbot" subject={(msg.content || '').slice(0, 60)} />
@@ -291,7 +291,7 @@ export default function Chatbot() {
       appendToSession(sessionId, {
         id:        'err' + Date.now(),
         role:      'assistant',
-        content:   `⚠ Error: ${e.message}\n\nPlease try again in a moment.`,
+        content:   `Error: ${e.message}\n\nPlease try again in a moment.`,
         timestamp: new Date().toLocaleTimeString('en-IN', { hour12: false }),
         mode:      'error',
       });
@@ -306,14 +306,14 @@ export default function Chatbot() {
     <div className="h-full flex gap-3">
 
       {/* ── Sessions sidebar ─────────────────────────────────────────────── */}
-      <aside className="w-64 shrink-0 flex flex-col overflow-hidden bg-app-panel border border-app-border rounded-xl">
+      <aside className="w-64 shrink-0 flex flex-col overflow-hidden astk-panel">
 
         {/* Header */}
         <div className="px-3 py-2.5 border-b border-app-border flex items-center justify-between shrink-0">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Chat History</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-app-muted">Chat History</span>
           <button
             onClick={handleNewSession}
-            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md bg-sky-500/15 text-sky-400 hover:bg-sky-500/25 border border-sky-500/30 transition-colors"
+            className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md bg-app-accent-bg text-app-accent hover:bg-app-accent-bg border border-app-accent-border transition-colors"
             title="New conversation"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -333,21 +333,21 @@ export default function Chatbot() {
                 key={session.id}
                 onClick={() => setActiveId(session.id)}
                 className={`group flex items-start gap-2 px-2.5 py-2.5 cursor-pointer transition-colors border-l-2 ${
-                  isActive ? 'bg-sky-500/[0.08] border-l-sky-500' : 'border-l-transparent hover:bg-white/[0.03]'
+                  isActive ? 'bg-app-accent-bg border-l-sky-500' : 'border-l-transparent hover:bg-app-accent-bg'
                 }`}
               >
                 <svg
-                  className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${isActive ? 'text-sky-400' : 'text-slate-600'}`}
+                  className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${isActive ? 'text-app-accent' : 'text-app-faint'}`}
                   fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7}
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
                 <div className="flex-1 min-w-0">
-                  <div className={`text-[11px] font-medium truncate leading-tight ${isActive ? 'text-white' : 'text-slate-300'}`}>
+                  <div className={`text-[11px] font-medium truncate leading-tight ${isActive ? 'text-app-text' : 'text-app-text'}`}>
                     {session.title}
                   </div>
-                  <div className="text-[9px] text-slate-600 mt-0.5 flex items-center gap-1">
+                  <div className="text-[10px] text-app-faint mt-0.5 flex items-center gap-1">
                     <span>{formatDate(session.createdAt)}</span>
                     {userMsgCount > 0 && (
                       <>
@@ -360,7 +360,7 @@ export default function Chatbot() {
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
                   title="Delete session"
-                  className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-red-500/20 hover:text-red-400 text-slate-600 mt-0.5"
+                  className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-app-danger-bg hover:text-app-danger text-app-faint mt-0.5"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -373,11 +373,11 @@ export default function Chatbot() {
 
         {/* Domain filter */}
         <div className="px-3 py-2.5 border-t border-app-border shrink-0">
-          <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-1.5">Domain Focus</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-app-faint mb-1.5">Domain Focus</div>
           <select
             value={contextDomain}
             onChange={e => handleDomainChange(e.target.value)}
-            className="w-full text-[11px] px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-200"
+            className="w-full text-[11px] px-2 py-1.5 rounded bg-app-surface-soft border border-app-border text-app-text"
           >
             <option value="All">All domains</option>
             {DOMAINS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -388,20 +388,20 @@ export default function Chatbot() {
         <div className="px-3 py-2 border-t border-app-border shrink-0">
           {confirmClear ? (
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-red-400 flex-1">Clear all sessions?</span>
+              <span className="text-[10px] text-app-danger flex-1">Clear all sessions?</span>
               <button
                 onClick={handleClearAll}
-                className="text-[10px] px-2 py-0.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 font-semibold"
+                className="text-[10px] px-2 py-0.5 rounded bg-app-danger-bg text-app-danger hover:bg-app-danger-bg border border-app-danger-border font-semibold"
               >Yes</button>
               <button
                 onClick={() => setConfirmClear(false)}
-                className="text-[10px] px-2 py-0.5 rounded bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] border border-app-border"
+                className="text-[10px] px-2 py-0.5 rounded bg-app-surface-soft text-app-muted hover:bg-app-accent-bg border border-app-border"
               >No</button>
             </div>
           ) : (
             <button
               onClick={() => setConfirmClear(true)}
-              className="w-full text-[10px] text-slate-600 hover:text-red-400 flex items-center justify-center gap-1.5 py-1 rounded hover:bg-red-500/10 transition-colors"
+              className="w-full text-[10px] text-app-faint hover:text-app-danger flex items-center justify-center gap-1.5 py-1 rounded hover:bg-app-danger-bg transition-colors"
             >
               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -413,19 +413,19 @@ export default function Chatbot() {
       </aside>
 
       {/* ── Main chat panel ──────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col bg-app-panel border border-app-border rounded-xl overflow-hidden">
+      <div className="flex-1 flex flex-col astk-panel overflow-hidden">
         <div className="px-4 py-3 border-b border-app-border flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">AI</div>
+            <div className="w-8 h-8 rounded-lg bg-app-btn text-app-btn-text flex items-center justify-center text-xs font-bold">AI</div>
             <div>
-              <div className="text-sm font-bold text-white">Rules &amp; Regulations Assistant</div>
-              <div className="text-[10px] text-slate-500">
-                Domain: <span className="text-sky-400">{contextDomain}</span>
+              <div className="text-sm font-bold text-app-text">Rules &amp; Regulations Assistant</div>
+              <div className="text-[10px] text-app-muted">
+                Domain: <span className="text-app-accent">{contextDomain}</span>
               </div>
             </div>
           </div>
-          <span className="flex items-center gap-1 text-[10px] text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="flex items-center gap-1 text-[10px] text-app-success">
+            <span className="w-1.5 h-1.5 rounded-full bg-app-success animate-pulse" />
             AI online
           </span>
         </div>
@@ -435,12 +435,12 @@ export default function Chatbot() {
           {messages.map(m => <Message key={m.id} msg={m} onSend={send} />)}
           {isThinking && (
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold">AI</div>
+              <div className="w-8 h-8 rounded-lg bg-app-btn text-app-btn-text flex items-center justify-center text-xs font-bold">AI</div>
               <div className="bg-app-panel border border-app-border rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                <span className="text-[10px] text-slate-500 ml-1">Thinking…</span>
+                <span className="w-2 h-2 rounded-full bg-app-accent animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-app-accent animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-app-accent animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="text-[10px] text-app-muted ml-1">Thinking…</span>
               </div>
             </div>
           )}
@@ -449,19 +449,19 @@ export default function Chatbot() {
 
         {/* Composer */}
         <div className="border-t border-app-border p-3">
-          <div className="flex items-end gap-2 bg-slate-900/40 border border-slate-700 rounded-xl px-3 py-2 focus-within:border-sky-500/50 transition-colors">
+          <div className="flex items-end gap-2 bg-app-surface-soft border border-app-border rounded-xl px-3 py-2 focus-within:border-app-accent-border transition-colors">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={onKey}
               rows={1}
               placeholder="Ask about a rule, validate a spec, generate documentation, run a calculation…"
-              className="flex-1 bg-transparent text-[13px] text-slate-200 placeholder-slate-500 outline-none resize-none max-h-32 py-1"
+              className="flex-1 bg-transparent text-[13px] text-app-text placeholder-app-faint outline-none resize-none max-h-32 py-1"
             />
             <button
               onClick={() => send()}
               disabled={!input.trim() || isThinking}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-app-btn text-app-btn-text text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity flex items-center gap-1"
             >
               Send
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -469,7 +469,7 @@ export default function Chatbot() {
               </svg>
             </button>
           </div>
-          <div className="text-[10px] text-slate-600 mt-1.5 px-1">Enter to send · Shift+Enter new line</div>
+          <div className="text-[10px] text-app-faint mt-1.5 px-1">Enter to send · Shift+Enter new line</div>
         </div>
       </div>
 
@@ -477,34 +477,34 @@ export default function Chatbot() {
       <aside className="w-72 shrink-0 flex flex-col gap-3 overflow-y-auto">
 
         {/* Reference document picker */}
-        <div className="bg-app-panel border border-app-border rounded-xl p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Reference Document</div>
+        <div className="astk-panel">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-2">Reference Document</div>
           {userDocs.length === 0 ? (
-            <p className="text-[10px] text-slate-600 leading-relaxed">
-              No documents yet. Upload one on the <span className="text-sky-400">Documents</span> page, then select it here to use as conversation context.
+            <p className="text-[10px] text-app-faint leading-relaxed">
+              No documents yet. Upload one on the <span className="text-app-accent">Documents</span> page, then select it here to use as conversation context.
             </p>
           ) : (
             <>
               <select
                 value={chatDoc?.id || ''}
                 onChange={(e) => handleDocSelect(e.target.value)}
-                className="w-full text-[11px] px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-200"
+                className="w-full text-[11px] px-2 py-1.5 rounded bg-app-surface-soft border border-app-border text-app-text"
               >
                 <option value="">No reference document</option>
                 {userDocs.map(d => <option key={d.id} value={d.id}>{d.name} · {d.type}</option>)}
               </select>
               {chatDoc && (
-                <div className="flex items-start gap-2 bg-emerald-500/[0.06] border border-emerald-500/30 rounded-lg p-2 mt-2">
-                  <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-start gap-2 bg-app-success-bg border border-app-success-border rounded-lg p-2 mt-2">
+                  <svg className="w-3.5 h-3.5 text-app-success shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold text-emerald-300 truncate">{chatDoc.name}</div>
-                    <div className="text-[10px] text-slate-500">{Math.ceil((chatDoc.text?.length || 0) / 1000)}K chars · active as context</div>
+                    <div className="text-[11px] font-semibold text-app-success truncate">{chatDoc.name}</div>
+                    <div className="text-[10px] text-app-muted">{Math.ceil((chatDoc.text?.length || 0) / 1000)}K chars · active as context</div>
                   </div>
                   <button
                     onClick={() => setChatDoc(null)}
-                    className="shrink-0 text-slate-500 hover:text-red-400 transition-colors"
+                    className="shrink-0 text-app-muted hover:text-app-danger transition-colors"
                     title="Remove reference"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -518,8 +518,8 @@ export default function Chatbot() {
         </div>
 
         {/* Suggested prompts — dynamic from uploaded doc */}
-        <div className="bg-app-panel border border-app-border rounded-xl p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Suggested prompts</div>
+        <div className="astk-panel">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-2">Suggested prompts</div>
           {chatDoc?.suggestions?.length > 0 ? (
             <div className="space-y-1.5">
               {chatDoc.suggestions.map((s, i) => (
@@ -527,32 +527,32 @@ export default function Chatbot() {
                   key={i}
                   onClick={() => send(s)}
                   disabled={isThinking}
-                  className="w-full text-left text-[11px] px-2.5 py-2 rounded-lg bg-white/[0.02] border border-app-border hover:bg-sky-500/[0.06] hover:border-sky-500/30 hover:text-sky-200 text-slate-300 transition-colors disabled:opacity-40"
+                  className="w-full text-left text-[11px] px-2.5 py-2 rounded-lg bg-app-surface-soft border border-app-border hover:bg-app-accent-bg hover:border-app-accent-border hover:text-app-accent text-app-text transition-colors disabled:opacity-40"
                 >
                   <span className="leading-snug">{s}</span>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="text-[10px] text-slate-600 leading-relaxed">
+            <div className="text-[10px] text-app-faint leading-relaxed">
               Select a reference document above to see document-specific prompt suggestions.
             </div>
           )}
         </div>
 
         {/* Quick reference rules */}
-        <div className="bg-app-panel border border-app-border rounded-xl p-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Quick reference</div>
+        <div className="astk-panel">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-2">Quick reference</div>
           <div className="space-y-1.5 text-[10px]">
             {RULE_CORPUS.slice(0, 5).map(r => (
               <button
                 key={r.id}
                 onClick={() => send(`Explain ${r.id} — ${r.title}`)}
                 disabled={isThinking}
-                className="w-full text-left px-2 py-1.5 rounded hover:bg-white/[0.03] text-slate-300 disabled:opacity-40"
+                className="w-full text-left px-2 py-1.5 rounded hover:bg-app-accent-bg text-app-text disabled:opacity-40"
               >
-                <div className="font-mono font-bold text-sky-400">{r.id}</div>
-                <div className="text-slate-500 truncate">{r.title}</div>
+                <div className="font-mono font-bold text-app-accent">{r.id}</div>
+                <div className="text-app-muted truncate">{r.title}</div>
               </button>
             ))}
           </div>

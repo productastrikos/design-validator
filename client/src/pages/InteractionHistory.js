@@ -71,34 +71,34 @@ export default function InteractionHistory() {
 
       <Card title="History" desc="Click an entry to revisit the full prompt and response.">
         {busy && !items.length ? (
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5"><Spinner /> Loading…</div>
+          <div className="text-[11px] text-app-muted flex items-center gap-1.5"><Spinner /> Loading…</div>
         ) : items.length ? (
           <div className="space-y-2">
             {items.map(it => (
-              <div key={it.id} className="rounded-lg border border-app-border bg-slate-950/30">
+              <div key={it.id} className="rounded-lg border border-app-border bg-app-surface-soft">
                 <button onClick={() => setOpenId(openId === it.id ? null : it.id)}
-                  className="w-full flex items-start gap-3 px-3 py-2 text-left hover:bg-white/[0.02]">
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-sky-500/15 text-sky-300 border-sky-500/30 uppercase whitespace-nowrap mt-0.5">{it.module}</span>
+                  className="w-full flex items-start gap-3 px-3 py-2 text-left hover:bg-app-accent-bg">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-app-accent-bg text-app-accent border-app-accent-border uppercase whitespace-nowrap mt-0.5">{it.module}</span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[12px] text-slate-200 truncate">{it.prompt || '(no prompt)'}</span>
-                    <span className="block text-[10px] text-slate-500">{fmtTs(it.ts)}{it.subject ? ` · ${it.subject}` : ''}</span>
+                    <span className="block text-[12px] text-app-text truncate">{it.prompt || '(no prompt)'}</span>
+                    <span className="block text-[10px] text-app-muted">{fmtTs(it.ts)}{it.subject ? ` · ${it.subject}` : ''}</span>
                   </span>
-                  <svg className={`w-3.5 h-3.5 text-slate-500 shrink-0 transition-transform ${openId === it.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <svg className={`w-3.5 h-3.5 text-app-muted shrink-0 transition-transform ${openId === it.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {openId === it.id && (
                   <div className="px-3 pb-3 space-y-2 border-t border-app-border">
                     <div>
-                      <div className="text-[9px] uppercase tracking-widest text-slate-500 font-bold mt-2 mb-1">Prompt / Query</div>
-                      <div className="text-[12px] text-slate-200 whitespace-pre-wrap bg-slate-900/50 rounded-lg p-2">{it.prompt}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-app-muted font-bold mt-2 mb-1">Prompt / Query</div>
+                      <div className="text-[12px] text-app-text whitespace-pre-wrap bg-app-surface-soft rounded-lg p-2">{it.prompt}</div>
                     </div>
                     <div>
-                      <div className="text-[9px] uppercase tracking-widest text-slate-500 font-bold mb-1">AI Response (excerpt)</div>
-                      <div className="text-[12px] text-slate-300 whitespace-pre-wrap bg-slate-900/50 rounded-lg p-2 max-h-72 overflow-y-auto">{it.response}{it.response?.length >= 600 ? ' …' : ''}</div>
+                      <div className="text-[10px] uppercase tracking-widest text-app-muted font-bold mb-1">AI Response (excerpt)</div>
+                      <div className="text-[12px] text-app-text whitespace-pre-wrap bg-app-surface-soft rounded-lg p-2 max-h-72 overflow-y-auto">{it.response}{it.response?.length >= 600 ? ' …' : ''}</div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <button onClick={() => onContinue(it)} className="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[10px] font-semibold hover:bg-sky-500/25">Continue in Assistant →</button>
-                      <button onClick={() => onCopy(it.prompt)} className="px-2.5 py-1 rounded-lg bg-slate-700/40 text-slate-300 border border-slate-600 text-[10px] font-semibold hover:bg-slate-700/70">Copy prompt</button>
-                      <button onClick={() => onDelete(it.id)} className="px-2.5 py-1 rounded-lg bg-red-500/10 text-red-300 border border-red-500/30 text-[10px] font-semibold hover:bg-red-500/20">Delete</button>
+                      <button onClick={() => onContinue(it)} className="px-2.5 py-1 rounded-lg bg-app-accent-bg text-app-accent border border-app-accent-border text-[10px] font-semibold hover:bg-app-accent-bg">Continue in Assistant →</button>
+                      <button onClick={() => onCopy(it.prompt)} className="px-2.5 py-1 rounded-lg bg-app-surface-raised text-app-text border border-app-border text-[10px] font-semibold hover:bg-app-surface-raised">Copy prompt</button>
+                      <button onClick={() => onDelete(it.id)} className="px-2.5 py-1 rounded-lg bg-app-danger-bg text-app-danger border border-app-danger-border text-[10px] font-semibold hover:bg-app-danger-bg">Delete</button>
                     </div>
                   </div>
                 )}
@@ -110,7 +110,7 @@ export default function InteractionHistory() {
             </div>
           </div>
         ) : (
-          <div className="text-[11px] text-slate-500">No interactions yet. Your prompts and AI responses across the modules will appear here automatically.</div>
+          <div className="text-[11px] text-app-muted">No interactions yet. Your prompts and AI responses across the modules will appear here automatically.</div>
         )}
       </Card>
     </Page>

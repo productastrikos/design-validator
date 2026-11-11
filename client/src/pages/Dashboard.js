@@ -1,29 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, StatTile, RunButton, ErrorNote, ResultTable, MultiDocSource, Field, Spinner, FeedbackBar } from '../components/feature/FeatureKit';
+import { Card, StatTile, PageHeader, RunButton, ErrorNote, ResultTable, MultiDocSource, Field, Spinner, FeedbackBar } from '../components/feature/FeatureKit';
 import { dashboardAnalytics } from '../services/featureApi';
+import { Download } from 'lucide-react';
+import { openStudio } from '../components/studio/DocumentStudio';
 
 function QuickTile({ to, icon, title, desc, accent }) {
   const navigate = useNavigate();
   return (
-    <button onClick={() => navigate(to)} className="bg-app-panel border border-app-border rounded-xl p-4 text-left hover:border-sky-500/50 transition-all group">
+    <button onClick={() => navigate(to)} className="astk-panel text-left hover:border-app-accent-border transition-colors group">
       <div className="flex items-center gap-3 mb-2">
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${accent}`}>{icon}</div>
-        <span className="text-sm font-semibold text-white group-hover:text-sky-300 transition-colors">{title}</span>
+        <span className="text-sm font-semibold text-app-text group-hover:text-app-accent transition-colors">{title}</span>
       </div>
-      <p className="text-[11px] text-slate-400 leading-snug">{desc}</p>
+      <p className="text-[11px] text-app-muted leading-snug">{desc}</p>
     </button>
   );
 }
 
 function Bar({ label, value, max, tone = 'sky' }) {
   const pct = max > 0 ? Math.round((Number(value) || 0) / max * 100) : 0;
-  const color = { sky: 'bg-sky-500', amber: 'bg-amber-500', red: 'bg-red-500', emerald: 'bg-emerald-500', violet: 'bg-violet-500' }[tone] || 'bg-sky-500';
+  const color = { sky: 'bg-app-accent', amber: 'bg-app-warning', red: 'bg-app-danger', emerald: 'bg-app-success', violet: 'bg-app-advisory' }[tone] || 'bg-app-accent';
   return (
     <div className="flex items-center gap-2 text-[11px]">
-      <div className="w-44 truncate text-slate-300" title={label}>{label}</div>
-      <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden"><div className={`h-full ${color}`} style={{ width: `${pct}%` }} /></div>
-      <div className="w-10 text-right text-slate-400 font-mono">{value}</div>
+      <div className="w-44 truncate text-app-text" title={label}>{label}</div>
+      <div className="flex-1 h-3 bg-app-surface-raised rounded-full overflow-hidden"><div className={`h-full ${color}`} style={{ width: `${pct}%` }} /></div>
+      <div className="w-10 text-right text-app-muted font-mono">{value}</div>
     </div>
   );
 }
@@ -52,20 +54,17 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-1 space-y-4 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Design Intelligence Dashboard</h1>
-        <p className="text-[11px] text-slate-400 mt-0.5">Prompt-driven analytics — nothing is pre-populated. Ask a question and select documents to generate equipment-wise insights.</p>
-      </div>
+    <div className="page">
+      <PageHeader title="Design Intelligence Dashboard" subtitle="Prompt-driven analytics — nothing is pre-populated. Ask a question and select documents to generate equipment-wise insights." />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <QuickTile to="/chatbot"   accent="bg-sky-500/15 text-sky-400"     title="Rules & Regulations Assistant"     desc="Ask anything across the entire knowledge base."
+        <QuickTile to="/chatbot"   accent="bg-app-accent-bg text-app-accent"     title="Rules & Regulations Assistant"     desc="Ask anything across the entire knowledge base."
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={ICN.chat} /></svg>} />
-        <QuickTile to="/converter" accent="bg-emerald-500/15 text-emerald-400" title="Document Converter" desc="Extract any data into custom columns → Excel / Word."
+        <QuickTile to="/converter" accent="bg-app-success-bg text-app-success" title="Document Converter" desc="Extract any data into custom columns → Excel / Word."
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={ICN.conv} /></svg>} />
-        <QuickTile to="/drawings"  accent="bg-amber-500/15 text-amber-400"  title="Drawing Intelligence" desc="SLD/GA extraction, BOM, compartments, class-rule validation."
+        <QuickTile to="/drawings"  accent="bg-app-warning-bg text-app-warning"  title="Drawing Intelligence" desc="SLD/GA extraction, BOM, compartments, class-rule validation."
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={ICN.draw} /></svg>} />
-        <QuickTile to="/bom"       accent="bg-violet-500/15 text-violet-400" title="BOM & SOTR"          desc="Generate a BOM from RFP/specs, then derive the SOTR."
+        <QuickTile to="/bom"       accent="bg-app-violet-bg text-app-advisory-soft" title="BOM & SOTR"          desc="Generate a BOM from RFP/specs, then derive the SOTR."
           icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d={ICN.bom} /></svg>} />
       </div>
 
@@ -77,12 +76,22 @@ export default function Dashboard() {
         </div>
         <RunButton onClick={run} busy={busy} busyLabel="Building dashboard…">Generate Analytics</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Reading the selected documents and computing analytics…</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Reading the selected documents and computing analytics…</div>}
       </Card>
 
       {res && (
-        <Card title="Analytics" desc={res.sources?.length ? `Based on: ${res.sources.join(', ')}` : 'Based on your prompt'}>
-          {res.summary && <p className="text-[12px] text-slate-200 leading-relaxed">{res.summary}</p>}
+        <Card title="Analytics" desc={res.sources?.length ? `Based on: ${res.sources.join(', ')}` : 'Based on your prompt'}
+          right={<button type="button" className="icon-btn sm" aria-label="Download analytics" onClick={() => openStudio({
+            title: 'Design analytics',
+            subtitle: prompt.slice(0, 140),
+            sections: [
+              res.summary && { type: 'text', title: 'Summary', body: res.summary },
+              res.kpis?.length && { type: 'kpis', title: 'Key figures', items: res.kpis.map(k => ({ label: `${k.label}${k.unit ? ` (${k.unit})` : ''}`, value: String(k.value) })) },
+              ...(res.charts || []).map(c => ({ type: 'chart', title: c.title, data: c.data || [] })),
+              res.table?.columns?.length && { type: 'table', title: 'Analytics detail', columns: res.table.columns, rows: res.table.rows || [] },
+            ],
+          })}><Download size={13} /></button>}>
+          {res.summary && <p className="text-[12px] text-app-text leading-relaxed">{res.summary}</p>}
           {res.kpis?.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {res.kpis.map((k, i) => <StatTile key={i} label={`${k.label}${k.unit ? ` (${k.unit})` : ''}`} value={k.value} tone={k.tone || 'sky'} />)}
@@ -92,7 +101,7 @@ export default function Dashboard() {
             const max = Math.max(...(c.data || []).map(d => Number(d.value) || 0), 1);
             return (
               <div key={ci} className="space-y-1.5">
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{c.title}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted">{c.title}</div>
                 {(c.data || []).slice(0, 16).map((d, i) => <Bar key={i} label={d.label} value={d.value} max={max} tone={['sky', 'violet', 'amber', 'emerald'][ci % 4]} />)}
               </div>
             );
@@ -101,7 +110,7 @@ export default function Dashboard() {
             <ResultTable columns={res.table.columns} rows={res.table.rows || []} title="Analytics Detail" sheetName="Analytics" downloadName="Dashboard_Analytics" />
           )}
           {(!res.summary && !res.kpis?.length && !res.charts?.length && !res.table?.columns?.length) && (
-            <div className="text-[11px] text-slate-500 py-4 text-center">No analytics could be derived. Try selecting documents or refining the prompt.</div>
+            <div className="text-[11px] text-app-muted py-4 text-center">No analytics could be derived. Try selecting documents or refining the prompt.</div>
           )}
           <FeedbackBar module="dashboard" subject={prompt.slice(0, 80)} />
         </Card>

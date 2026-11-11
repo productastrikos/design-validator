@@ -150,7 +150,11 @@ Two roles, authenticated with JWT (8-hour expiry):
 Default accounts `admin` and `engineer1` are created on first boot (`server/data/users.json`) with
 the passwords in `ADMIN_PASSWORD` and `ENGINEER_PASSWORD`. If those are unset, the passwords fall
 back to `admin123` and `engineer123`, which is only acceptable on a local machine. The login page
-shows shortcuts to these accounts only when `VITE_SHOW_DEMO_ACCOUNTS=true`, set in development.
+never shows passwords. To change the admin password on an existing install, see `DEPLOY.md`
+section 5, "Admin sign-in".
+
+The interface follows the Astrikos UI Theme v2.0. Its tokens and component classes are in
+`client/src/theme.css`, and product-only additions are in `client/src/additions.css`.
 
 ---
 

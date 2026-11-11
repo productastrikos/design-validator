@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { testConnection, getKbStatus } from '../services/aiService';
+import { PageHeader } from '../components/feature/FeatureKit';
 
 function StatusDot({ ok }) {
-  return <span className={`inline-block w-2 h-2 rounded-full ${ok ? 'bg-emerald-400' : 'bg-red-400'}`} />;
+  return <span className={`inline-block w-2 h-2 rounded-full ${ok ? 'bg-app-success' : 'bg-app-danger'}`} />;
 }
 
 export default function Settings() {
@@ -34,18 +35,13 @@ export default function Settings() {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-1 space-y-5 max-w-3xl mx-auto">
-      <div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Settings</h1>
-        <p className="text-[11px] text-slate-400 mt-0.5">
-          Verify the inference engine and review the built-in knowledge base.
-        </p>
-      </div>
+    <div className="page max-w-3xl">
+      <PageHeader title="Settings" subtitle="Verify the inference engine and review the built-in knowledge base." />
 
       {/* ── Inference engine ──────────────────────────────────────────────── */}
-      <div className="bg-app-panel border border-app-border rounded-xl p-5 space-y-4">
-        <h2 className="text-sm font-bold text-white">Inference Engine</h2>
-        <p className="text-[11px] text-slate-400 leading-relaxed">
+      <div className="astk-panel space-y-4">
+        <h2 className="text-sm font-bold text-app-text">Inference Engine</h2>
+        <p className="text-[11px] text-app-muted leading-relaxed">
           Language and vision processing runs through the inference endpoint configured on the server.
           Document text and queries are sent to that endpoint, so point it at a private or on-premise
           deployment when documents must stay inside your network.
@@ -54,7 +50,7 @@ export default function Settings() {
           <button
             onClick={runTest}
             disabled={testing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-app-border text-[11px] font-semibold text-slate-300 hover:bg-white/[0.04] transition-colors disabled:opacity-50"
+            className="app-control-btn btn-md"
           >
             {testing ? (
               <><svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Testing…</>
@@ -64,7 +60,7 @@ export default function Settings() {
           </button>
 
           {testResult && (
-            <div className={`flex items-center gap-1.5 text-[11px] ${testResult.ok ? 'text-emerald-300' : 'text-red-300'}`}>
+            <div className={`flex items-center gap-1.5 text-[11px] ${testResult.ok ? 'text-app-success' : 'text-app-danger'}`}>
               <StatusDot ok={testResult.ok} />
               {testResult.msg}
             </div>
@@ -73,10 +69,10 @@ export default function Settings() {
       </div>
 
       {/* ── Knowledge Base ────────────────────────────────────────────────── */}
-      <div className="bg-app-panel border border-app-border rounded-xl p-5 space-y-4">
+      <div className="astk-panel space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">Knowledge Base</h2>
-          <button onClick={refreshKb} className="text-[10px] text-slate-400 hover:text-slate-200 flex items-center gap-1">
+          <h2 className="text-sm font-bold text-app-text">Knowledge Base</h2>
+          <button onClick={refreshKb} className="text-[10px] text-app-muted hover:text-app-text flex items-center gap-1">
             <svg className={`w-3 h-3 ${kbLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -84,67 +80,36 @@ export default function Settings() {
           </button>
         </div>
 
-        <p className="text-[11px] text-slate-400 leading-relaxed">
+        <p className="text-[11px] text-app-muted leading-relaxed">
           The engine is grounded in a built-in maritime rule base (SOLAS, the LSA Code and classification
           rules) used for retrieval. Upload your
-          own documents from the <span className="text-sky-400">Document Intelligence</span> page — they
+          own documents from the <span className="text-app-accent">Document Intelligence</span> page — they
           stay in your workspace for the session and power every tool.
         </p>
 
         {kbStatus ? (
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="bg-slate-950/40 border border-slate-800 rounded-lg p-3">
-              <div className="text-xl font-bold text-violet-400">{(kbStatus.chunks || 0).toLocaleString()}</div>
-              <div className="text-[10px] text-slate-500 uppercase mt-0.5">Knowledge Chunks</div>
-            </div>
-            <div className="bg-slate-950/40 border border-slate-800 rounded-lg p-3">
-              <div className="text-xl font-bold text-sky-400">{(kbStatus.vectorsIndexed || 0).toLocaleString()}</div>
-              <div className="text-[10px] text-slate-500 uppercase mt-0.5">Vectors Indexed</div>
-            </div>
-            <div className="bg-slate-950/40 border border-slate-800 rounded-lg p-3">
-              <div className="text-xl font-bold text-emerald-400">{kbStatus.ready ? 'Ready' : 'Loading'}</div>
-              <div className="text-[10px] text-slate-500 uppercase mt-0.5">Engine State</div>
-            </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="stat"><div className="stat-label">Knowledge Chunks</div><div className="stat-value astk-numeric">{(kbStatus.chunks || 0).toLocaleString()}</div></div>
+            <div className="stat"><div className="stat-label">Vectors Indexed</div><div className="stat-value astk-numeric">{(kbStatus.vectorsIndexed || 0).toLocaleString()}</div></div>
+            <div className="stat"><div className="stat-label">Engine State</div><div className="stat-value astk-numeric">{kbStatus.ready ? 'Ready' : 'Loading'}</div></div>
           </div>
         ) : kbLoading ? (
-          <div className="text-[11px] text-slate-500">Loading status…</div>
+          <div className="text-[11px] text-app-muted">Loading status…</div>
         ) : (
-          <div className="text-[11px] text-red-400">
-            Backend server not reachable. Start the system with <code className="font-mono bg-slate-800 px-1 rounded">npm run dev</code> from the project root.
+          <div className="text-[11px] text-app-danger">
+            Backend server not reachable. Start the system with <code className="font-mono bg-app-surface-raised px-1 rounded">npm run dev</code> from the project root.
           </div>
         )}
       </div>
 
-      {/* ── Quick Start ───────────────────────────────────────────────────── */}
-      <div className="bg-app-panel border border-app-border rounded-xl p-5 space-y-3">
-        <h2 className="text-sm font-bold text-white">Quick Start</h2>
-        <div className="space-y-2 text-[11px] text-slate-400">
-          <div className="flex items-start gap-2">
-            <span className="text-sky-400 font-mono font-bold mt-0.5">1.</span>
-            <span>Start the full stack: <code className="font-mono bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded">npm run dev</code> from the project root (runs both server + client).</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-sky-400 font-mono font-bold mt-0.5">2.</span>
-            <span>Click <span className="text-white font-semibold">Test Connection</span> above to confirm the engine is running and the knowledge base is loaded.</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-sky-400 font-mono font-bold mt-0.5">3.</span>
-            <span>Upload your documents in <span className="text-sky-400">Document Intelligence</span> — they are read (with vision for scanned pages) and classified automatically.</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-sky-400 font-mono font-bold mt-0.5">4.</span>
-            <span>Use the <span className="text-sky-400">Rules &amp; Regulations Assistant</span> and the analysis tools — each lets you pick one of your uploaded documents.</span>
-          </div>
-        </div>
-      </div>
 
       {/* ── Engine info ───────────────────────────────────────────────────── */}
-      <div className="bg-app-panel border border-app-border rounded-xl p-4 text-[11px] text-slate-400 flex items-center justify-between">
+      <div className="astk-panel text-[11px] text-app-muted flex-row items-center justify-between">
         <div>
-          <span className="text-white font-semibold">Engine:</span>{' '}
+          <span className="text-app-text font-semibold">Engine:</span>{' '}
           LLM inference · Hybrid BM25 + semantic retrieval · Vision OCR
         </div>
-        <span className="text-[9px] uppercase tracking-widest text-slate-600 font-bold">Design Validator</span>
+        <span className="text-[10px] uppercase tracking-widest text-app-faint font-bold">Design Validator</span>
       </div>
     </div>
   );

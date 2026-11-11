@@ -79,6 +79,7 @@ function describe(req, rawPath) {
   if (p === '/api/upload')        return ['Upload document', trunc(req.file?.originalname)];
   if (p === '/api/convert')       return ['Convert / download document', trunc(`${req.file?.originalname || ''} → ${b.format || ''}`)];
   if (p === '/api/extract-text')  return ['Extract document text', trunc(req.file?.originalname)];
+  if (p === '/api/export/log') return [`Download (${String(b.format || 'file').toUpperCase()})`, trunc(b.filename)];
   if (p.startsWith('/api/export/')) return [`Download (${p.split('/').pop().toUpperCase()})`, trunc(b.filename || b.title)];
   if (/^\/api\/inspection\/observations\//.test(p) && m === 'PATCH') return ['Update observation status', trunc(`status → ${b.status || ''}`)];
   if (p.startsWith('/api/inspection') && m === 'POST') return ['Analyse inspection report', trunc(b.project || req.file?.originalname || '')];

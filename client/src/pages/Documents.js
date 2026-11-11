@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { confirmDialog, toast } from '../components/ui/Overlays';
 import { uploadDocument, validate, saveToRepository, deleteRepositoryDoc } from '../services/aiService';
 import { listUserDocs, getUserDoc, addUserDoc, removeUserDoc, listProjects, listRepositoryDocs } from '../services/docStore';
 import { DOC_ACCEPT } from '../services/fileTypes';
@@ -7,35 +8,35 @@ const DISCIPLINES = ['', 'Electrical', 'Machinery', 'Hull', 'Outfit', 'Piping', 
 
 // ── Document type styles ──────────────────────────────────────────────────────
 const TYPE_COLOR = {
-  'SOTR':              'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  'POTS':              'bg-pink-500/15 text-pink-300 border-pink-500/30',
-  'Technical Offer':   'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-  'Binding Data':      'bg-teal-500/15 text-teal-300 border-teal-500/30',
-  'Compliance Matrix': 'bg-violet-500/15 text-violet-300 border-violet-500/30',
-  'Inspection Report': 'bg-red-500/15 text-red-300 border-red-500/30',
-  'Drawing':           'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  'Build Specification':'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
-  'RFP / Tender':      'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  'General Document':  'bg-slate-600/20 text-slate-300 border-slate-600/40',
+  'SOTR':              'bg-app-warning-bg text-app-warning border-app-warning-border',
+  'POTS':              'bg-app-violet-bg text-app-advisory-soft border-app-advisory-border',
+  'Technical Offer':   'bg-app-accent-bg text-app-accent border-app-accent-border',
+  'Binding Data':      'bg-app-success-bg text-app-success border-app-success-border',
+  'Compliance Matrix': 'bg-app-violet-bg text-app-advisory-soft border-app-advisory-border',
+  'Inspection Report': 'bg-app-danger-bg text-app-danger border-app-danger-border',
+  'Drawing':           'bg-app-accent-bg text-app-accent border-app-accent-border',
+  'Build Specification':'bg-app-accent-bg text-app-accent border-app-accent-border',
+  'RFP / Tender':      'bg-app-warning-bg text-app-warning border-app-warning-border',
+  'General Document':  'bg-app-surface-raised text-app-text border-app-border',
 };
 
 const SEV_STYLE = {
-  critical: { txt:'text-red-400',    bg:'bg-red-500/15',    border:'border-red-500/30',    dot:'bg-red-500' },
-  high:     { txt:'text-orange-400', bg:'bg-orange-500/15', border:'border-orange-500/30', dot:'bg-orange-500' },
-  medium:   { txt:'text-amber-400',  bg:'bg-amber-500/15',  border:'border-amber-500/30',  dot:'bg-amber-500' },
-  low:      { txt:'text-sky-400',    bg:'bg-sky-500/15',    border:'border-sky-500/30',    dot:'bg-sky-500' },
+  critical: { txt:'text-app-danger',    bg:'bg-app-danger-bg',    border:'border-app-danger-border',    dot:'bg-app-danger' },
+  high:     { txt:'text-app-warning', bg:'bg-app-warning-bg', border:'border-app-warning-border', dot:'bg-app-warning' },
+  medium:   { txt:'text-app-warning',  bg:'bg-app-warning-bg',  border:'border-app-warning-border',  dot:'bg-app-warning' },
+  low:      { txt:'text-app-accent',    bg:'bg-app-accent-bg',    border:'border-app-accent-border',    dot:'bg-app-accent' },
 };
 const STATUS_STYLE = {
-  open:        { txt:'text-red-300',     bg:'bg-red-500/15',     label:'Open'      },
-  'in-review': { txt:'text-amber-300',   bg:'bg-amber-500/15',   label:'In Review' },
-  resolved:    { txt:'text-emerald-300', bg:'bg-emerald-500/15', label:'Resolved'  },
+  open:        { txt:'text-app-danger',     bg:'bg-app-danger-bg',     label:'Open'      },
+  'in-review': { txt:'text-app-warning',   bg:'bg-app-warning-bg',   label:'In Review' },
+  resolved:    { txt:'text-app-success', bg:'bg-app-success-bg', label:'Resolved'  },
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-function ProgressBar({ value, color = 'bg-sky-400' }) {
+function ProgressBar({ value, color = 'bg-app-accent' }) {
   return (
-    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-      <div className={`h-full ${color} transition-all duration-100`} style={{ width: `${value}%` }} />
+    <div className="h-1.5 bg-app-surface-soft rounded-full overflow-hidden">
+      <div className={`h-full ${color} transition-[width] duration-100`} style={{ width: `${value}%` }} />
     </div>
   );
 }
@@ -123,79 +124,79 @@ function UploadCard({ onAdded, projects = [] }) {
     error:    'Upload failed',
   }[stage];
 
-  const stageColor = { idle:'border-app-border', reading:'border-sky-500/40', ocr:'border-amber-500/40', indexing:'border-violet-500/40', done:'border-emerald-500/40', error:'border-red-500/40' }[stage];
+  const stageColor = { idle:'border-app-border', reading:'border-app-accent-border', ocr:'border-app-warning-border', indexing:'border-app-advisory-border', done:'border-app-success-border', error:'border-app-danger-border' }[stage];
 
   return (
     <div className={`bg-app-panel border-2 border-dashed ${stageColor} rounded-xl p-6 transition-colors`}>
       <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={onPick} />
       {batch && (
         <div className="space-y-3">
-          <div className="text-sm font-semibold text-white">
+          <div className="text-sm font-semibold text-app-text">
             {batch.done < batch.total
               ? `Uploading ${batch.done} of ${batch.total}…`
               : `Uploaded ${batch.total - batch.errors} of ${batch.total}${batch.errors ? ` · ${batch.errors} failed` : ''}`}
           </div>
-          <ProgressBar value={Math.round((batch.done / Math.max(1, batch.total)) * 100)} color="bg-emerald-400" />
+          <ProgressBar value={Math.round((batch.done / Math.max(1, batch.total)) * 100)} color="bg-app-success" />
           {batch.done >= batch.total && (
-            <button onClick={() => setBatch(null)} className="text-[10px] px-2 py-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Upload more</button>
+            <button onClick={() => setBatch(null)} className="text-[10px] px-2 py-1 rounded bg-app-success-bg text-app-success border border-app-success-border">Upload more</button>
           )}
         </div>
       )}
       {!batch && stage === 'idle' && (
         <div className="space-y-3">
-          <button onClick={() => fileRef.current?.click()} className="w-full flex flex-col items-center gap-2 text-slate-400 hover:text-sky-300 transition-colors">
+          <button onClick={() => fileRef.current?.click()} className="w-full flex flex-col items-center gap-2 text-app-muted hover:text-app-accent transition-colors">
             <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
             <span className="text-sm font-semibold">{stageLabel}</span>
-            <span className="text-[11px] text-slate-500">The document type is detected automatically · PDF · DOCX · scanned images · CSV · no per-file size limit on this server</span>
+            <span className="text-[11px] text-app-muted">The document type is detected automatically · PDF · DOCX · scanned images · CSV · no per-file size limit on this server</span>
           </button>
-          <div className="grid sm:grid-cols-2 gap-2 pt-1 border-t border-app-border/60">
+          <div className="grid sm:grid-cols-2 gap-2 pt-1 border-t border-app-border-soft">
             <div>
-              <label className="text-[9px] uppercase tracking-widest text-slate-500 font-bold block mb-1">Project / Workspace</label>
+              <label className="text-[10px] uppercase tracking-widest text-app-muted font-bold block mb-1">Project / Workspace</label>
               <input list="ws-projects" value={project} onChange={e => setProject(e.target.value)} placeholder="e.g. OSV 45, Hull 101…"
-                className="w-full text-[11px] px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-200" />
+                className="w-full text-[11px] px-2 py-1.5 rounded bg-app-surface-soft border border-app-border text-app-text" />
               <datalist id="ws-projects">{projects.map(p => <option key={p} value={p} />)}</datalist>
             </div>
             <div>
-              <label className="text-[9px] uppercase tracking-widest text-slate-500 font-bold block mb-1">Discipline (optional)</label>
+              <label className="text-[10px] uppercase tracking-widest text-app-muted font-bold block mb-1">Discipline (optional)</label>
               <select value={discipline} onChange={e => setDiscipline(e.target.value)}
-                className="w-full text-[11px] px-2 py-1.5 rounded bg-slate-900 border border-slate-700 text-slate-200">
+                className="w-full text-[11px] px-2 py-1.5 rounded bg-app-surface-soft border border-app-border text-app-text">
                 {DISCIPLINES.map(d => <option key={d} value={d}>{d || '— none —'}</option>)}
               </select>
             </div>
           </div>
           <label className="flex items-start gap-2 pt-1 cursor-pointer select-none">
             <input type="checkbox" checked={toRepo} onChange={e => setToRepo(e.target.checked)}
-              className="mt-0.5 accent-emerald-500" />
-            <span className="text-[10px] text-slate-400 leading-snug">
-              <span className="font-semibold text-emerald-300">Save to shared repository</span> — persists on the server across sessions (survives sign-out) and is available to all users. Leave unchecked to keep the document only for this session.
+              className="mt-0.5 " />
+            <span className="text-[10px] text-app-muted leading-snug">
+              <span className="font-semibold text-app-success">Save to shared repository</span> — persists on the server across sessions (survives sign-out) and is available to all users. Leave unchecked to keep the document only for this session.
             </span>
           </label>
-          <p className="text-[10px] text-slate-500 text-center">Uploads are filed under the chosen project &amp; discipline in your hierarchical Workspace.</p>
+          <p className="text-[10px] text-app-muted text-center">Uploads are filed under the chosen project &amp; discipline in your hierarchical Workspace.</p>
         </div>
       )}
       {stage !== 'idle' && fileInfo && (
         <div className="space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-app-accent-bg text-app-accent flex items-center justify-center shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-white truncate">{fileInfo.name}</div>
-              <div className="text-[10px] text-slate-500">{((fileInfo.size || 0) / 1024 / 1024).toFixed(2)} MB · {stageLabel}</div>
+              <div className="text-sm font-semibold text-app-text truncate">{fileInfo.name}</div>
+              <div className="text-[10px] text-app-muted">{((fileInfo.size || 0) / 1024 / 1024).toFixed(2)} MB · {stageLabel}</div>
             </div>
             {stage === 'done' && (
-              <button onClick={() => { setStage('idle'); setError(null); setFileInfo(null); }} className="text-[10px] px-2 py-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Upload another</button>
+              <button onClick={() => { setStage('idle'); setError(null); setFileInfo(null); }} className="text-[10px] px-2 py-1 rounded bg-app-success-bg text-app-success border border-app-success-border">Upload another</button>
             )}
             {stage === 'error' && (
-              <button onClick={() => { setStage('idle'); setError(null); setFileInfo(null); }} className="text-[10px] px-2 py-1 rounded bg-red-500/15 text-red-400 border border-red-500/30">Dismiss</button>
+              <button onClick={() => { setStage('idle'); setError(null); setFileInfo(null); }} className="text-[10px] px-2 py-1 rounded bg-app-danger-bg text-app-danger border border-app-danger-border">Dismiss</button>
             )}
           </div>
           <ProgressBar value={progress} color={
-            stage === 'error'    ? 'bg-red-400' :
-            stage === 'reading'  ? 'bg-sky-400' :
-            stage === 'ocr'      ? 'bg-amber-400' :
-            stage === 'indexing' ? 'bg-violet-400' :
-                                   'bg-emerald-400'
+            stage === 'error'    ? 'bg-app-danger' :
+            stage === 'reading'  ? 'bg-app-accent' :
+            stage === 'ocr'      ? 'bg-app-warning' :
+            stage === 'indexing' ? 'bg-app-advisory' :
+                                   'bg-app-success'
           } />
           <div className="grid grid-cols-4 gap-2 text-[10px]">
             {[
@@ -207,14 +208,14 @@ function UploadCard({ onAdded, projects = [] }) {
               const order = ['reading','ocr','indexing','done'];
               const done  = order.indexOf(stage) >= order.indexOf(s.k);
               return (
-                <div key={s.k} className={`text-center py-1 rounded font-semibold uppercase tracking-widest ${done ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-800 text-slate-500'}`}>{s.l}</div>
+                <div key={s.k} className={`text-center py-1 rounded font-semibold uppercase tracking-widest ${done ? 'bg-app-success-bg text-app-success' : 'bg-app-surface-raised text-app-muted'}`}>{s.l}</div>
               );
             })}
           </div>
           {error && (
-            <div className="flex items-start gap-2 bg-red-500/[0.08] border border-red-500/30 rounded-lg px-3 py-2">
-              <svg className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-              <span className="text-[11px] text-red-300">{error}</span>
+            <div className="flex items-start gap-2 bg-app-danger-bg border border-app-danger-border rounded-lg px-3 py-2">
+              <svg className="w-3.5 h-3.5 text-app-danger shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <span className="text-[11px] text-app-danger">{error}</span>
             </div>
           )}
         </div>
@@ -249,14 +250,14 @@ export default function Documents() {
   }, [refreshDocs, refreshRepo]);
 
   const handleRepoDelete = useCallback(async (doc) => {
-    if (!window.confirm(`Permanently remove "${doc.name}" from the shared repository? This affects all users.`)) return;
+    if (!(await confirmDialog({ title: 'Remove from the shared repository?', body: `"${doc.name}" will be removed for all users.`, confirmLabel: 'Remove document', danger: true }))) return;
     setRepoDeleting(doc.id);
-    try { await deleteRepositoryDoc(doc.id); await refreshRepo(); } catch (e) { alert(e.message); }
+    try { await deleteRepositoryDoc(doc.id); await refreshRepo(); } catch (e) { toast({ tone: 'danger', title: 'Could not remove the document', body: e.message }); }
     setRepoDeleting(null);
   }, [refreshRepo]);
 
   const handleDelete = useCallback(async (doc) => {
-    if (!window.confirm(`Remove "${doc.name}" from your workspace?`)) return;
+    if (!(await confirmDialog({ title: 'Remove from your workspace?', body: `"${doc.name}" will be removed from your workspace.`, confirmLabel: 'Remove document', danger: true }))) return;
     setDeletingId(doc.id);
     try { await removeUserDoc(doc.id); } catch (_) {}
     setDeletingId(null);
@@ -333,25 +334,23 @@ export default function Documents() {
       }
     } catch (e) {
       setAiError(e.message);
-      setScanLog(prev => [...prev, `⚠ Error: ${e.message}`]);
+      setScanLog(prev => [...prev, `Error: ${e.message}`]);
     }
     setTimeout(() => setRunning(false), steps.length * 320);
   };
 
-  const tabCls = (tab) => `px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
-    activeTab === tab ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'text-slate-400 hover:text-white border-transparent'
-  }`;
+  const tabCls = (tab) => `app-tab ${activeTab === tab ? 'is-active' : ''}`;
 
   return (
-    <div className="h-full overflow-y-auto p-1 space-y-4">
+    <div className="page">
       <div>
-        <h1 className="text-xl font-bold text-white tracking-tight">Document Intelligence</h1>
-        <p className="text-[11px] text-slate-400 mt-0.5">
+        <h1 className="page-title">Document Intelligence</h1>
+        <p className="text-[11px] text-app-muted mt-0.5">
           Upload your documents here — they are read (with vision for scanned pages), auto-classified, and made available across every tool. Documents stay in your workspace until you sign out.
         </p>
       </div>
 
-      <div className="flex gap-1 bg-app-panel border border-app-border rounded-xl p-1 w-fit">
+      <div className="app-tabs" role="tablist">
         <button className={tabCls('documents')} onClick={() => setActiveTab('documents')}>My Documents</button>
         <button className={tabCls('repository')} onClick={() => setActiveTab('repository')}>
           Shared Repository{repoDocs.length ? ` · ${repoDocs.length}` : ''}
@@ -364,15 +363,15 @@ export default function Documents() {
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { label:'In Workspace',  value:summary.total,                  color:'text-sky-400',    sub:'documents' },
-              { label:'Document Types',value:summary.types,                  color:'text-violet-400', sub:'detected' },
-              { label:'Total Pages',   value:summary.pages.toLocaleString(), color:'text-amber-400',  sub:'extracted' },
-              { label:'Characters',    value:summary.chars.toLocaleString(), color:'text-teal-400',   sub:'indexed content' },
+              { label:'In Workspace',  value:summary.total,                  color:'text-app-accent',    sub:'documents' },
+              { label:'Document Types',value:summary.types,                  color:'text-app-advisory-soft', sub:'detected' },
+              { label:'Total Pages',   value:summary.pages.toLocaleString(), color:'text-app-warning',  sub:'extracted' },
+              { label:'Characters',    value:summary.chars.toLocaleString(), color:'text-app-success',   sub:'indexed content' },
             ].map(({ label, value, color, sub }) => (
-              <div key={label} className="bg-app-panel border border-app-border rounded-xl p-4">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
+              <div key={label} className="astk-panel">
+                <div className="text-[10px] uppercase tracking-widest text-app-muted font-bold">{label}</div>
                 <div className={`text-2xl font-bold ${color} mt-1`}>{value}</div>
-                <div className="text-[10px] text-slate-500">{sub}</div>
+                <div className="text-[10px] text-app-muted">{sub}</div>
               </div>
             ))}
           </div>
@@ -381,14 +380,14 @@ export default function Documents() {
             <div className="space-y-3">
               <UploadCard onAdded={refreshAll} projects={Array.from(new Set([...docs, ...repoDocs].map(d => d.project || 'Unassigned')))} />
 
-              <div className="bg-app-panel border border-app-border rounded-xl overflow-hidden">
+              <div className="astk-panel overflow-hidden">
                 <div className="px-4 py-3 border-b border-app-border flex items-center gap-3 flex-wrap">
-                  <h3 className="text-sm font-bold text-white">Your Documents</h3>
+                  <h3 className="text-sm font-bold text-app-text">Your Documents</h3>
                   <input
                     value={query}
                     onChange={e => setQuery(e.target.value)}
                     placeholder="Filter by name…"
-                    className="text-[11px] px-2 py-1 rounded bg-slate-900 border border-slate-700 text-slate-200 flex-1 max-w-xs"
+                    className="text-[11px] px-2 py-1 rounded bg-app-surface-soft border border-app-border text-app-text flex-1 max-w-xs"
                   />
                   <div className="flex items-center gap-1 flex-wrap">
                     {types.map(t => (
@@ -396,7 +395,7 @@ export default function Documents() {
                         key={t}
                         onClick={() => setDocFilter(t)}
                         className={`text-[10px] px-2 py-1 rounded border font-semibold ${
-                          docFilter === t ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                          docFilter === t ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border hover:bg-app-surface-raised'
                         }`}
                       >{t}</button>
                     ))}
@@ -404,7 +403,7 @@ export default function Documents() {
                 </div>
                 <div className="max-h-[480px] overflow-y-auto">
                   <table className="w-full text-[11px]">
-                    <thead className="text-[9px] uppercase tracking-widest text-slate-500 bg-white/[0.02]">
+                    <thead className="text-[10px] uppercase tracking-widest text-app-muted bg-app-surface-soft">
                       <tr>
                         <th className="text-left px-3 py-2 font-bold">Document</th>
                         <th className="text-left px-3 py-2 font-bold">Detected Type</th>
@@ -413,24 +412,24 @@ export default function Documents() {
                         <th className="px-3 py-2"></th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/[0.04]">
+                    <tbody className="divide-y divide-app-border-soft">
                       {filtered.map(d => (
-                        <tr key={d.id} className="hover:bg-white/[0.02]">
+                        <tr key={d.id} className="hover:bg-app-accent-bg">
                           <td className="px-3 py-2">
-                            <div className="text-slate-200 font-semibold leading-tight">{d.name}</div>
-                            <div className="font-mono text-[9px] text-slate-600">{Math.round((d.textLength || 0) / 1000)}k chars</div>
+                            <div className="text-app-text font-semibold leading-tight">{d.name}</div>
+                            <div className="font-mono text-[10px] text-app-faint">{Math.round((d.textLength || 0) / 1000)}k chars</div>
                           </td>
                           <td className="px-3 py-2">
-                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest ${TYPE_COLOR[d.type] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>{d.type}</span>
+                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest ${TYPE_COLOR[d.type] || 'bg-app-surface-raised text-app-text border-app-border'}`}>{d.type}</span>
                           </td>
-                          <td className="text-right px-3 py-2 text-slate-300 font-mono">{d.pages || '—'}</td>
-                          <td className="px-3 py-2 text-slate-500">{d.addedAt ? new Date(d.addedAt).toLocaleDateString() : '—'}</td>
+                          <td className="text-right px-3 py-2 text-app-text font-mono">{d.pages || '—'}</td>
+                          <td className="px-3 py-2 text-app-muted">{d.addedAt ? new Date(d.addedAt).toLocaleDateString() : '—'}</td>
                           <td className="px-3 py-2 text-right">
                             <button
                               onClick={() => handleDelete(d)}
                               disabled={deletingId === d.id}
                               title="Remove document"
-                              className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                              className="p-1 rounded text-app-muted hover:text-app-danger hover:bg-app-danger-bg transition-colors disabled:opacity-40"
                             >
                               {deletingId === d.id ? (
                                 <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -443,7 +442,7 @@ export default function Documents() {
                       ))}
                       {filtered.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="px-3 py-8 text-center text-slate-500 text-[11px]">
+                          <td colSpan={5} className="px-3 py-8 text-center text-app-muted text-[11px]">
                             No documents yet. Upload one above to get started.
                           </td>
                         </tr>
@@ -460,35 +459,35 @@ export default function Documents() {
       {/* ── SHARED REPOSITORY TAB ───────────────────────────────────────────── */}
       {activeTab === 'repository' && (
         <div className="space-y-3">
-          <div className="bg-emerald-500/[0.06] border border-emerald-500/25 rounded-xl px-4 py-3">
-            <div className="text-sm font-bold text-emerald-300">Persistent Shared Repository</div>
-            <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-              Documents saved here live on the server — they <span className="text-slate-200 font-semibold">persist across sessions</span> (they are not cleared when you sign out), are <span className="text-slate-200 font-semibold">shared with every user</span>, and have <span className="text-slate-200 font-semibold">no count or size limit</span>. Tick “Save to shared repository” in the upload box (My Documents tab) to add documents here. They are available in every tool’s document picker.
+          <div className="bg-app-success-bg border border-app-success-border rounded-xl px-4 py-3">
+            <div className="text-sm font-bold text-app-success">Persistent Shared Repository</div>
+            <p className="text-[11px] text-app-muted mt-1 leading-snug">
+              Documents saved here live on the server — they <span className="text-app-text font-semibold">persist across sessions</span> (they are not cleared when you sign out), are <span className="text-app-text font-semibold">shared with every user</span>, and have <span className="text-app-text font-semibold">no count or size limit</span>. Tick “Save to shared repository” in the upload box (My Documents tab) to add documents here. They are available in every tool’s document picker.
             </p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             {[
-              { label:'In Repository', value: repoDocs.length,                                        color:'text-emerald-400', sub:'documents (all users)' },
-              { label:'Projects',      value: new Set(repoDocs.map(d => d.project || 'Unassigned')).size, color:'text-sky-400',     sub:'workspaces' },
-              { label:'Total Pages',   value: repoDocs.reduce((s, d) => s + (d.pages || 0), 0).toLocaleString(), color:'text-amber-400', sub:'extracted' },
+              { label:'In Repository', value: repoDocs.length,                                        color:'text-app-success', sub:'documents (all users)' },
+              { label:'Projects',      value: new Set(repoDocs.map(d => d.project || 'Unassigned')).size, color:'text-app-accent',     sub:'workspaces' },
+              { label:'Total Pages',   value: repoDocs.reduce((s, d) => s + (d.pages || 0), 0).toLocaleString(), color:'text-app-warning', sub:'extracted' },
             ].map(({ label, value, color, sub }) => (
-              <div key={label} className="bg-app-panel border border-app-border rounded-xl p-4">
-                <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</div>
+              <div key={label} className="astk-panel">
+                <div className="text-[10px] uppercase tracking-widest text-app-muted font-bold">{label}</div>
                 <div className={`text-2xl font-bold ${color} mt-1`}>{value}</div>
-                <div className="text-[10px] text-slate-500">{sub}</div>
+                <div className="text-[10px] text-app-muted">{sub}</div>
               </div>
             ))}
           </div>
 
-          <div className="bg-app-panel border border-app-border rounded-xl overflow-hidden">
+          <div className="astk-panel overflow-hidden">
             <div className="px-4 py-3 border-b border-app-border flex items-center gap-3">
-              <h3 className="text-sm font-bold text-white">Repository Documents</h3>
-              <button onClick={refreshRepo} className="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700">Refresh</button>
+              <h3 className="text-sm font-bold text-app-text">Repository Documents</h3>
+              <button onClick={refreshRepo} className="text-[10px] px-2 py-1 rounded bg-app-surface-raised text-app-muted border border-app-border hover:bg-app-surface-raised">Refresh</button>
             </div>
             <div className="max-h-[480px] overflow-y-auto">
               <table className="w-full text-[11px]">
-                <thead className="text-[9px] uppercase tracking-widest text-slate-500 bg-white/[0.02]">
+                <thead className="text-[10px] uppercase tracking-widest text-app-muted bg-app-surface-soft">
                   <tr>
                     <th className="text-left px-3 py-2 font-bold">Document</th>
                     <th className="text-left px-3 py-2 font-bold">Type</th>
@@ -499,26 +498,26 @@ export default function Documents() {
                     <th className="px-3 py-2"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04]">
+                <tbody className="divide-y divide-app-border-soft">
                   {repoDocs.map(d => (
-                    <tr key={d.id} className="hover:bg-white/[0.02]">
+                    <tr key={d.id} className="hover:bg-app-accent-bg">
                       <td className="px-3 py-2">
-                        <div className="text-slate-200 font-semibold leading-tight">{d.name}</div>
-                        <div className="font-mono text-[9px] text-slate-600">{Math.round((d.textLength || 0) / 1000)}k chars</div>
+                        <div className="text-app-text font-semibold leading-tight">{d.name}</div>
+                        <div className="font-mono text-[10px] text-app-faint">{Math.round((d.textLength || 0) / 1000)}k chars</div>
                       </td>
                       <td className="px-3 py-2">
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest ${TYPE_COLOR[d.type] || 'bg-slate-700 text-slate-300 border-slate-600'}`}>{d.type}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest ${TYPE_COLOR[d.type] || 'bg-app-surface-raised text-app-text border-app-border'}`}>{d.type}</span>
                       </td>
-                      <td className="px-3 py-2 text-slate-400">{d.project || 'Unassigned'}</td>
-                      <td className="px-3 py-2 text-slate-400">{d.uploadedBy || '—'}</td>
-                      <td className="text-right px-3 py-2 text-slate-300 font-mono">{d.pages || '—'}</td>
-                      <td className="px-3 py-2 text-slate-500">{d.addedAt ? new Date(d.addedAt).toLocaleDateString() : '—'}</td>
+                      <td className="px-3 py-2 text-app-muted">{d.project || 'Unassigned'}</td>
+                      <td className="px-3 py-2 text-app-muted">{d.uploadedBy || '—'}</td>
+                      <td className="text-right px-3 py-2 text-app-text font-mono">{d.pages || '—'}</td>
+                      <td className="px-3 py-2 text-app-muted">{d.addedAt ? new Date(d.addedAt).toLocaleDateString() : '—'}</td>
                       <td className="px-3 py-2 text-right">
                         <button
                           onClick={() => handleRepoDelete(d)}
                           disabled={repoDeleting === d.id}
                           title="Remove from shared repository"
-                          className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                          className="p-1 rounded text-app-muted hover:text-app-danger hover:bg-app-danger-bg transition-colors disabled:opacity-40"
                         >
                           {repoDeleting === d.id ? (
                             <svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -531,7 +530,7 @@ export default function Documents() {
                   ))}
                   {repoDocs.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-3 py-8 text-center text-slate-500 text-[11px]">
+                      <td colSpan={7} className="px-3 py-8 text-center text-app-muted text-[11px]">
                         The shared repository is empty. Upload a document with “Save to shared repository” ticked to add one.
                       </td>
                     </tr>
@@ -546,29 +545,29 @@ export default function Documents() {
       {/* ── RULE VALIDATOR TAB ──────────────────────────────────────────────── */}
       {activeTab === 'validator' && (
         <>
-          <p className="text-[11px] text-slate-400 -mt-2">
+          <p className="text-[11px] text-app-muted -mt-2">
             Compliance scan — the assistant cross-references your document against the knowledge base (Class · IMO · IEC rules).
           </p>
 
           {aiError && (
-            <div className="flex items-center gap-2 bg-red-500/[0.08] border border-red-500/30 rounded-lg px-3 py-2 text-[11px] text-red-300">
+            <div className="flex items-center gap-2 bg-app-danger-bg border border-app-danger-border rounded-lg px-3 py-2 text-[11px] text-app-danger">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
               {aiError}
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="bg-app-panel border border-app-border rounded-xl p-4 lg:col-span-2">
+            <div className="astk-panel lg:col-span-2">
               <div className="flex items-center gap-3 mb-3">
                 {docs.length === 0 ? (
-                  <div className="flex-1 text-[11px] text-slate-500 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                  <div className="flex-1 text-[11px] text-app-muted px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border">
                     No documents uploaded yet. Upload a document in the Documents tab to validate it.
                   </div>
                 ) : (
                   <select
                     value={selectedSpec}
                     onChange={e => { setSelectedSpec(e.target.value); setAiFindings(null); setScanLog([]); setAiError(null); }}
-                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 font-mono font-bold"
+                    className="flex-1 text-sm px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-app-text font-mono font-bold"
                   >
                     {docs.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                   </select>
@@ -576,7 +575,7 @@ export default function Documents() {
                 <button
                   onClick={runScan}
                   disabled={running || !selectedSpec}
-                  className="px-3 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-violet-500 text-white text-xs font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-lg bg-app-btn text-app-btn-text text-xs font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity flex items-center gap-1.5"
                 >
                   {running ? (
                     <><svg className="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Scanning…</>
@@ -592,88 +591,88 @@ export default function Documents() {
                   { label:'Type',     value: spec?.type || '—' },
                   { label:'Pages',    value: spec?.pages || '—' },
                   { label:'Added',    value: spec?.addedAt ? new Date(spec.addedAt).toLocaleDateString() : '—' },
-                  { label:'Findings', value: findings.length, className:'text-amber-400' },
+                  { label:'Findings', value: findings.length, className:'text-app-warning' },
                 ].map(({ label, value, className }) => (
-                  <div key={label} className="bg-slate-950/40 rounded-lg p-2 border border-slate-800">
-                    <div className="text-[9px] uppercase tracking-widest text-slate-500">{label}</div>
-                    <div className={`text-sm font-bold mt-1 ${className || 'text-white'}`}>{value}</div>
+                  <div key={label} className="bg-app-surface-soft rounded-lg p-2 border border-app-border">
+                    <div className="text-[10px] uppercase tracking-widest text-app-muted">{label}</div>
+                    <div className={`text-sm font-bold mt-1 ${className || 'text-app-text'}`}>{value}</div>
                   </div>
                 ))}
               </div>
 
               {scanLog.length > 0 && (
-                <div className="mt-3 bg-slate-950 border border-slate-800 rounded-lg p-2.5 font-mono text-[10px] max-h-36 overflow-y-auto">
+                <div className="mt-3 bg-app-surface-soft border border-app-border rounded-lg p-2.5 font-mono text-[10px] max-h-36 overflow-y-auto">
                   {scanLog.map((l, i) => (
-                    <div key={i} className={l.startsWith('⚠') ? 'text-red-400' : l.startsWith('─') ? 'text-slate-500' : 'text-slate-400'}>▸ {l}</div>
+                    <div key={i} className={l.startsWith('Error:') ? 'text-app-danger' : l.startsWith('─') ? 'text-app-muted' : 'text-app-muted'}>▸ {l}</div>
                   ))}
-                  {running && <div className="text-sky-400 animate-pulse">▸ Analyzing…</div>}
+                  {running && <div className="text-app-accent animate-pulse">▸ Analyzing…</div>}
                 </div>
               )}
             </div>
 
-            <div className="bg-app-panel border border-app-border rounded-xl p-4 flex flex-col items-center justify-center">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Compliance Score</div>
+            <div className="astk-panel flex flex-col items-center justify-center">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-2">Compliance Score</div>
               <div className="relative w-32 h-32">
                 <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="42" stroke="#1e293b" strokeWidth="10" fill="none" />
+                  <circle cx="50" cy="50" r="42" stroke="var(--app-surface-raised)" strokeWidth="10" fill="none" />
                   <circle cx="50" cy="50" r="42"
-                    stroke={score >= 90 ? '#10b981' : score >= 75 ? '#f59e0b' : '#ef4444'}
+                    stroke={score >= 90 ? 'var(--app-success)' : score >= 75 ? 'var(--app-warning)' : 'var(--app-danger)'}
                     strokeWidth="10" fill="none"
                     strokeDasharray={`${(score / 100) * 264} 264`}
                     strokeLinecap="round"
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-bold text-white">{findings.length ? score : '—'}</span>
-                  <span className="text-[10px] text-slate-500">/ 100</span>
+                  <span className="text-3xl font-bold text-app-text">{findings.length ? score : '—'}</span>
+                  <span className="text-[10px] text-app-muted">/ 100</span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-3 w-full text-center text-[10px]">
-                <div><div className="font-bold text-red-400">{counts.critical}</div><div className="text-slate-500 uppercase">Critical</div></div>
-                <div><div className="font-bold text-orange-400">{counts.high}</div><div className="text-slate-500 uppercase">High</div></div>
-                <div><div className="font-bold text-emerald-400">{counts.resolved}</div><div className="text-slate-500 uppercase">Resolved</div></div>
+                <div><div className="font-bold text-app-danger">{counts.critical}</div><div className="text-app-muted uppercase">Critical</div></div>
+                <div><div className="font-bold text-app-warning">{counts.high}</div><div className="text-app-muted uppercase">High</div></div>
+                <div><div className="font-bold text-app-success">{counts.resolved}</div><div className="text-app-muted uppercase">Resolved</div></div>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <div className="bg-app-panel border border-app-border rounded-xl overflow-hidden lg:col-span-2">
+            <div className="astk-panel overflow-hidden lg:col-span-2">
               <div className="px-4 py-3 border-b border-app-border flex items-center justify-between flex-wrap gap-2">
-                <h3 className="text-sm font-bold text-white">Findings</h3>
+                <h3 className="text-sm font-bold text-app-text">Findings</h3>
                 <div className="flex items-center gap-1 flex-wrap">
                   {['all', 'critical', 'high', 'medium', 'open', 'resolved'].map(f => (
                     <button
                       key={f}
                       onClick={() => setValFilter(f)}
                       className={`text-[10px] px-2 py-1 rounded border font-semibold uppercase tracking-widest ${
-                        valFilter === f ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'
+                        valFilter === f ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border hover:bg-app-surface-raised'
                       }`}
                     >{f}</button>
                   ))}
                 </div>
               </div>
-              <div className="divide-y divide-white/[0.04]">
+              <div className="divide-y divide-app-border-soft">
                 {visible.length === 0 ? (
-                  <div className="text-center text-slate-500 text-[11px] py-8">
+                  <div className="text-center text-app-muted text-[11px] py-8">
                     {aiFindings === null && scanLog.length === 0 ? 'Run a validation scan to see compliance findings.' : 'No findings match the current filter.'}
                   </div>
                 ) : visible.map((f, i) => {
                   const sev = SEV_STYLE[f.severity] || SEV_STYLE.low;
                   const st  = STATUS_STYLE[f.status] || STATUS_STYLE.open;
                   return (
-                    <div key={i} className="p-3 hover:bg-white/[0.02]">
+                    <div key={i} className="p-3 hover:bg-app-accent-bg">
                       <div className="flex items-start gap-2.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${sev.dot} mt-1.5 shrink-0`} />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className={`text-[9px] font-bold uppercase ${sev.txt} ${sev.bg} ${sev.border} border px-1.5 py-0.5 rounded`}>{f.severity}</span>
-                            <span className={`text-[9px] font-bold uppercase ${st.txt} ${st.bg} px-1.5 py-0.5 rounded`}>{st.label}</span>
-                            <span className="text-[10px] font-mono text-slate-500">{f.ruleId}</span>
+                            <span className={`text-[10px] font-bold uppercase ${sev.txt} ${sev.bg} ${sev.border} border px-1.5 py-0.5 rounded`}>{f.severity}</span>
+                            <span className={`text-[10px] font-bold uppercase ${st.txt} ${st.bg} px-1.5 py-0.5 rounded`}>{st.label}</span>
+                            <span className="text-[10px] font-mono text-app-muted">{f.ruleId}</span>
                           </div>
-                          <div className="text-[11px] font-semibold text-slate-200 leading-tight">{f.section}</div>
-                          <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{f.finding}</p>
+                          <div className="text-[11px] font-semibold text-app-text leading-tight">{f.section}</div>
+                          <p className="text-[11px] text-app-muted mt-0.5 leading-snug">{f.finding}</p>
                         </div>
-                        {f.impact < 0 && <span className="text-[10px] font-bold text-red-400 shrink-0">{f.impact}%</span>}
+                        {f.impact < 0 && <span className="text-[10px] font-bold text-app-danger shrink-0">{f.impact}%</span>}
                       </div>
                     </div>
                   );

@@ -165,6 +165,11 @@ export async function downloadPdf(payload) {
   return { kb: Math.round(blob.size / 1024) };
 }
 
+// Exports built in the browser (PDF, PNG) still belong in the audit trail.
+export async function logExport({ format, filename }) {
+  return postJSON('/export/log', { format, filename });
+}
+
 // ── Feedback (continuous learning) ───────────────────────────────────────────
 export async function sendFeedback({ module, rating, remarks, subject }) {
   return postJSON('/feedback', { module, rating, remarks, subject });

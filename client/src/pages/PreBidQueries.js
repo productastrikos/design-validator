@@ -32,12 +32,12 @@ export default function PreBidQueries() {
         <Field label="Bid focus (optional)" value={focus} onChange={setFocus} placeholder="e.g. electrical scope, propulsion, hull outfitting" />
         <RunButton onClick={run} busy={busy} busyLabel="Analysing document…">Generate Pre-Bid Queries</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Reading section-by-section for ambiguities, contradictions and risks (with page numbers).</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Reading section-by-section for ambiguities, contradictions and risks (with page numbers).</div>}
       </Card>
 
       {res && (
         <>
-          <Card title="Query Summary" right={<span className="text-[11px] text-slate-400">{res.rfp}</span>}>
+          <Card title="Query Summary" right={<span className="text-[11px] text-app-muted">{res.rfp}</span>}>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
               <StatTile label="Total Queries" value={res.total} tone="emerald" />
               {Object.entries(res.byCategory).filter(([, v]) => v > 0).slice(0, 8).map(([k, v]) => (
@@ -48,7 +48,7 @@ export default function PreBidQueries() {
           <Card title="Pre-Bid Queries">
             <ResultTable columns={HEAD} rows={rows} title="Pre-Bid Queries" sheetName="Pre-Bid Queries"
               downloadName={`PreBidQueries_${(res.rfp || 'rfp').replace(/[^a-z0-9]+/gi, '_').slice(0, 24)}`} />
-            {res.citations?.length > 0 && <div className="text-[10px] text-slate-500 mt-2">Grounded in: {res.citations.join(' · ')}</div>}
+            {res.citations?.length > 0 && <div className="text-[10px] text-app-muted mt-2">Grounded in: {res.citations.join(' · ')}</div>}
             <FeedbackBar module="prebid" subject={res.rfp} />
           </Card>
         </>

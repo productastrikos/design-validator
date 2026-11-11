@@ -46,14 +46,14 @@ export default function DesignReview() {
         <DocSource label="Design document under review (optional)" value={doc} onChange={setDoc} />
         <RunButton onClick={run} busy={busy} busyLabel="Compiling checklist & risks…">Generate Design Review</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Cross-referencing rules and historical lessons for this system.</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Cross-referencing rules and historical lessons for this system.</div>}
       </Card>
 
       {res && (
         <>
           <Card title="Summary">
             {res.systemInterpreted && res.resolvedSystem && (
-              <div className="text-[11px] text-amber-300/90 bg-amber-500/[0.08] border border-amber-500/25 rounded-lg px-3 py-1.5 mb-1">
+              <div className="text-[11px] text-app-warning bg-app-warning-bg border border-app-warning-border rounded-lg px-3 py-1.5 mb-1">
                 Read “{res.system}” as <span className="font-semibold">{res.resolvedSystem}</span> to match historical lessons. If that’s not the system you meant, refine the name and re-run.
               </div>
             )}
@@ -63,12 +63,12 @@ export default function DesignReview() {
               <StatTile label="Lessons Used" value={res.lessonsUsed} tone="emerald" />
               <StatTile label="Recurring Defects" value={res.recurringCount} tone="red" />
             </div>
-            {res.citations?.length > 0 && <div className="text-[10px] text-slate-500">Grounded in: {res.citations.join(' · ')}</div>}
+            {res.citations?.length > 0 && <div className="text-[10px] text-app-muted">Grounded in: {res.citations.join(' · ')}</div>}
           </Card>
 
           <div className="flex gap-1.5">
-            <button onClick={() => setRtab('checklist')} className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${rtab === 'checklist' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>Checklist ({res.checklistCount || 0})</button>
-            <button onClick={() => setRtab('risk')} className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${rtab === 'risk' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>Risk Analysis ({res.riskCount || 0})</button>
+            <button onClick={() => setRtab('checklist')} className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${rtab === 'checklist' ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border'}`}>Checklist ({res.checklistCount || 0})</button>
+            <button onClick={() => setRtab('risk')} className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${rtab === 'risk' ? 'bg-app-warning-bg text-app-warning border-app-warning-border' : 'bg-app-surface-raised text-app-muted border-app-border'}`}>Risk Analysis ({res.riskCount || 0})</button>
           </div>
 
           {rtab === 'checklist' ? (

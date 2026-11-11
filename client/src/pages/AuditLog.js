@@ -75,11 +75,11 @@ export default function AuditLog() {
 
       <Card title="Activity Trail" desc={`${total} matching event${total === 1 ? '' : 's'}${total > rows.length ? ` · showing latest ${rows.length}` : ''}.`}>
         {busy && !rows.length ? (
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5"><Spinner /> Loading…</div>
+          <div className="text-[11px] text-app-muted flex items-center gap-1.5"><Spinner /> Loading…</div>
         ) : rows.length ? (
           <ResultTable columns={COLUMNS} rows={rows} title="Audit Log" sheetName="Audit Log" downloadName="Audit_Log" />
         ) : (
-          <div className="text-[11px] text-slate-500">No audit events match the current filters yet. Activity is recorded automatically as users work in the application.</div>
+          <div className="text-[11px] text-app-muted">No audit events match the current filters yet. Activity is recorded automatically as users work in the application.</div>
         )}
       </Card>
     </Page>

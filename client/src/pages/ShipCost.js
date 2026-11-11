@@ -152,7 +152,7 @@ export default function ShipCost() {
           <Field label="Project" value={project} onChange={setProject} placeholder="e.g. OSV 45 / Hull 101" />
         </div>
         <div className="mt-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5">Estimation parameters (drive the cost template)</div>
+          <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-1.5">Estimation parameters (drive the cost template)</div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             <Field label="Overheads % (OBS/SME/Docs)" value={overheadPct} onChange={setOverheadPct} placeholder="20" />
             <Field label="Escalation rate % / yr" value={escalationRate} onChange={setEscalationRate} placeholder="5" />
@@ -164,12 +164,12 @@ export default function ShipCost() {
         <div className="flex flex-col sm:flex-row gap-2">
           <RunButton onClick={run} busy={busy} busyLabel={stage || 'Working…'}>Generate BOM &amp; Estimate Cost</RunButton>
           <button onClick={useSavedBom} disabled={busy}
-            className="sm:w-auto px-4 py-2.5 rounded-lg bg-slate-700/50 text-slate-200 border border-slate-600 text-xs font-semibold hover:bg-slate-700 disabled:opacity-40 whitespace-nowrap">
+            className="sm:w-auto px-4 py-2.5 rounded-lg bg-app-surface-raised text-app-text border border-app-border text-xs font-semibold hover:bg-app-surface-raised disabled:opacity-40 whitespace-nowrap">
             Use saved BOM
           </button>
         </div>
         <ErrorNote>{error}</ErrorNote>
-        {busy && stage && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> {stage}</div>}
+        {busy && stage && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> {stage}</div>}
       </Card>
 
       {est && (
@@ -183,18 +183,18 @@ export default function ShipCost() {
             </div>
             <div className="grid md:grid-cols-2 gap-4 mt-3">
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Discipline-wise Cost</div>
-                <div className="rounded-lg border border-app-border divide-y divide-white/[0.05]">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-1">Discipline-wise Cost</div>
+                <div className="rounded-lg border border-app-border divide-y divide-app-border-soft">
                   {est.byDiscipline.map(d => (
-                    <div key={d.name} className="flex items-center justify-between px-3 py-1.5 text-[11px]"><span className="text-slate-300">{d.name}</span><span className="font-mono text-slate-200">{d.amountFmt}</span></div>
+                    <div key={d.name} className="flex items-center justify-between px-3 py-1.5 text-[11px]"><span className="text-app-text">{d.name}</span><span className="font-mono text-app-text">{d.amountFmt}</span></div>
                   ))}
                 </div>
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">System-wise Cost</div>
-                <div className="rounded-lg border border-app-border divide-y divide-white/[0.05] max-h-52 overflow-y-auto">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-app-muted mb-1">System-wise Cost</div>
+                <div className="rounded-lg border border-app-border divide-y divide-app-border-soft max-h-52 overflow-y-auto">
                   {est.bySystem.map(s => (
-                    <div key={s.name} className="flex items-center justify-between px-3 py-1.5 text-[11px]"><span className="text-slate-300 truncate pr-2">{s.name}</span><span className="font-mono text-slate-200 shrink-0">{s.amountFmt}</span></div>
+                    <div key={s.name} className="flex items-center justify-between px-3 py-1.5 text-[11px]"><span className="text-app-text truncate pr-2">{s.name}</span><span className="font-mono text-app-text shrink-0">{s.amountFmt}</span></div>
                   ))}
                 </div>
               </div>
@@ -212,7 +212,7 @@ export default function ShipCost() {
             <div>
               <input ref={bqFileRef} type="file" accept={DOC_ACCEPT} className="hidden" onChange={onBqFile} />
               <button onClick={() => bqFileRef.current?.click()} disabled={bqFileBusy}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors disabled:opacity-40">
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors disabled:opacity-40">
                 {bqFileBusy ? <Spinner /> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
                 {bqFileBusy ? 'Reading BQ file…' : 'Upload all BQs as one file (PDF / Excel / CSV)'}
               </button>
@@ -221,14 +221,14 @@ export default function ShipCost() {
               <Field label="Item (name contains)" value={bqItem} onChange={setBqItem} placeholder="e.g. Generator" />
               <Field label="Vendor" value={bqVendor} onChange={setBqVendor} placeholder="e.g. Vendor A" />
               <Field label="BQ unit rate (₹)" value={bqRate} onChange={setBqRate} placeholder="e.g. 4200000" />
-              <button onClick={addBq} className="px-3 py-2 rounded-lg bg-slate-700/50 text-slate-200 border border-slate-600 text-[11px] font-semibold hover:bg-slate-700">Add BQ</button>
+              <button onClick={addBq} className="px-3 py-2 rounded-lg bg-app-surface-raised text-app-text border border-app-border text-[11px] font-semibold hover:bg-app-surface-raised">Add BQ</button>
             </div>
             {bqs.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {bqs.map((b, i) => (
-                  <span key={i} className="text-[10px] px-2 py-1 rounded bg-sky-500/10 text-sky-300 border border-sky-500/30 flex items-center gap-1">
+                  <span key={i} className="text-[10px] px-2 py-1 rounded bg-app-accent-bg text-app-accent border border-app-accent-border flex items-center gap-1">
                     {b.item} = {fmt(b.rate)}{b.vendor ? ` · ${b.vendor}` : ''}
-                    <button onClick={() => setBqs(bqs.filter((_, j) => j !== i))} className="text-sky-400/70 hover:text-red-300">×</button>
+                    <button onClick={() => setBqs(bqs.filter((_, j) => j !== i))} className="text-app-accent hover:text-app-danger">×</button>
                   </span>
                 ))}
               </div>
@@ -251,18 +251,18 @@ export default function ShipCost() {
         <Card title="6 · Vendor-wise BQ Enquiries" desc="Auto-prepared enquiry emails for Administrator review & dispatch through the organisation's external email system. Download as Word or PDF.">
           <div className="space-y-2">
             {enq.enquiries.map((e, i) => (
-              <div key={i} className="rounded-lg border border-app-border bg-slate-950/30">
-                <button onClick={() => setOpenEnq(openEnq === i ? null : i)} className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-white/[0.02]">
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-violet-500/15 text-violet-300 border-violet-500/30 uppercase">{e.category}</span>
-                  <span className="flex-1 min-w-0"><span className="block text-[12px] text-slate-200 font-semibold truncate">{e.vendor}</span><span className="block text-[10px] text-slate-500">{e.reference} · {e.itemCount} item(s) · {e.status}</span></span>
-                  <svg className={`w-3.5 h-3.5 text-slate-500 transition-transform ${openEnq === i ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              <div key={i} className="rounded-lg border border-app-border bg-app-surface-soft">
+                <button onClick={() => setOpenEnq(openEnq === i ? null : i)} className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-app-accent-bg">
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border bg-app-violet-bg text-app-advisory-soft border-app-advisory-border uppercase">{e.category}</span>
+                  <span className="flex-1 min-w-0"><span className="block text-[12px] text-app-text font-semibold truncate">{e.vendor}</span><span className="block text-[10px] text-app-muted">{e.reference} · {e.itemCount} item(s) · {e.status}</span></span>
+                  <svg className={`w-3.5 h-3.5 text-app-muted transition-transform ${openEnq === i ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </button>
                 {openEnq === i && (
                   <div className="px-3 pb-3 space-y-2 border-t border-app-border">
-                    <pre className="text-[11px] text-slate-300 whitespace-pre-wrap font-sans bg-slate-900/50 rounded-lg p-3 mt-2 max-h-72 overflow-y-auto">{e.email}</pre>
+                    <pre className="text-[11px] text-app-text whitespace-pre-wrap font-sans bg-app-surface-soft rounded-lg p-3 mt-2 max-h-72 overflow-y-auto">{e.email}</pre>
                     <div className="flex gap-2">
-                      <button onClick={() => downloadEnq(e, 'word')} className="text-[10px] px-2.5 py-1 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25">Download Word</button>
-                      <button onClick={() => downloadEnq(e, 'pdf')} className="text-[10px] px-2.5 py-1 rounded bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25">Download PDF</button>
+                      <button onClick={() => downloadEnq(e, 'word')} className="text-[10px] px-2.5 py-1 rounded bg-app-accent-bg text-app-accent border border-app-accent-border hover:bg-app-accent-bg">Download Word</button>
+                      <button onClick={() => downloadEnq(e, 'pdf')} className="text-[10px] px-2.5 py-1 rounded bg-app-danger-bg text-app-danger border border-app-danger-border hover:bg-app-danger-bg">Download PDF</button>
                     </div>
                   </div>
                 )}

@@ -1,34 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { downloadXlsx, downloadWord, downloadPdf, downloadCsv, downloadOds, sendFeedback } from '../../services/featureApi';
+import { AlertTriangle, Check, Copy, Download, Frown, Meh, Smile } from 'lucide-react';
+import { sendFeedback } from '../../services/featureApi';
+import { openStudio } from '../studio/DocumentStudio';
 import { chat } from '../../services/aiService';
 import { listSelectableDocs, getSelectableDoc } from '../../services/docStore';
 
 /* ─── Layout primitives ──────────────────────────────────────────────────── */
 export function Page({ title, subtitle, children, actions }) {
   return (
-    <div className="h-full overflow-y-auto p-1 space-y-5 max-w-6xl mx-auto">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">{title}</h1>
-          {subtitle && <p className="text-[11px] text-slate-400 mt-0.5 max-w-3xl leading-relaxed">{subtitle}</p>}
-        </div>
-        {actions}
-      </div>
+    <div className="page">
+      <PageHeader title={title} subtitle={subtitle} actions={actions} />
       {children}
+    </div>
+  );
+}
+
+export function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div className="page-header-block">
+      <div className="page-title-wrap">
+        <h1 className="page-title">{title}</h1>
+        {subtitle && <div className="page-subtitle">{subtitle}</div>}
+      </div>
+      {actions && <div className="page-actions">{actions}</div>}
     </div>
   );
 }
 
 export function Card({ title, desc, children, right, className = '' }) {
   return (
-    <div className={`bg-app-panel border border-app-border rounded-xl p-5 space-y-4 ${className}`}>
+    <div className={`astk-panel space-y-4 ${className}`}>
       {(title || right) && (
-        <div className="flex items-start justify-between gap-3">
+        <div className="panel-head" style={{ marginBottom: 0 }}>
           <div>
-            {title && <h2 className="text-sm font-bold text-white">{title}</h2>}
-            {desc && <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{desc}</p>}
+            {title && <h2 className="panel-title">{title}</h2>}
+            {desc && <p className="panel-desc">{desc}</p>}
           </div>
-          {right}
+          {right && <div className="panel-actions">{right}</div>}
         </div>
       )}
       {children}
@@ -36,39 +44,35 @@ export function Card({ title, desc, children, right, className = '' }) {
   );
 }
 
-export function StatTile({ label, value, tone = 'sky' }) {
-  const colors = {
-    sky: 'text-sky-400', violet: 'text-violet-400', emerald: 'text-emerald-400',
-    amber: 'text-amber-400', red: 'text-red-400', orange: 'text-orange-400', slate: 'text-slate-300',
-  };
+const STAT_TONE = { emerald: 'is-success', amber: 'is-warning', orange: 'is-warning', red: 'is-danger' };
+
+/* A result figure inside a panel (spec 7.24). These are not KPI cards. */
+export function StatTile({ label, value, tone }) {
   return (
-    <div className="bg-slate-950/40 border border-slate-800 rounded-lg p-3 text-center">
-      <div className={`text-xl font-bold ${colors[tone] || colors.sky}`}>{value}</div>
-      <div className="text-[10px] text-slate-500 uppercase mt-0.5 tracking-wide">{label}</div>
+    <div className="stat">
+      <div className="stat-label">{label}</div>
+      <div className={`stat-value astk-numeric ${STAT_TONE[tone] || ''}`}>{value}</div>
     </div>
   );
 }
 
-export function Spinner({ className = 'w-3.5 h-3.5' }) {
-  return (
-    <svg className={`${className} animate-spin`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  );
+export function Spinner({ className = '' }) {
+  return <span className={`app-spinner ${className}`} role="status" aria-label="Working" />;
 }
 
 export function ErrorNote({ children }) {
   if (!children) return null;
-  return <div className="text-[11px] text-red-300 bg-red-500/[0.07] border border-red-500/30 rounded-lg px-3 py-2">⚠ {children}</div>;
+  return (
+    <div className="callout callout-danger" role="alert" style={{ marginBottom: 0 }}>
+      <AlertTriangle size={14} className="callout-icon" />
+      <div className="callout-body">{children}</div>
+    </div>
+  );
 }
 
 export function RunButton({ onClick, busy, disabled, children, busyLabel = 'Working…' }) {
   return (
-    <button
-      onClick={onClick}
-      disabled={busy || disabled}
-      className="w-full py-2.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2"
-    >
+    <button type="button" onClick={onClick} disabled={busy || disabled} className="app-primary-btn btn-lg btn-block">
       {busy ? (<><Spinner /> {busyLabel}</>) : children}
     </button>
   );
@@ -76,30 +80,16 @@ export function RunButton({ onClick, busy, disabled, children, busyLabel = 'Work
 
 /* ─── Severity / status colour mapping ───────────────────────────────────── */
 const TONE = {
-  critical: 'bg-red-500/15 text-red-300 border-red-500/30',
-  high:     'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  medium:   'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  low:      'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  info:     'bg-sky-500/15 text-sky-300 border-sky-500/30',
-  // statuses
-  complied:        'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  submitted:       'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  'partially complied': 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  partial:         'bg-amber-500/15 text-amber-300 border-amber-500/30',
-  deviation:       'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  insufficient:    'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  exclusion:       'bg-red-500/15 text-red-300 border-red-500/30',
-  'not addressed': 'bg-red-500/15 text-red-300 border-red-500/30',
-  missing:         'bg-red-500/15 text-red-300 border-red-500/30',
-  ambiguous:       'bg-violet-500/15 text-violet-300 border-violet-500/30',
-  yes:             'bg-red-500/15 text-red-300 border-red-500/30',
-  no:              'bg-slate-600/20 text-slate-300 border-slate-600/40',
+  critical: 'danger', high: 'warning', medium: 'info', low: 'neutral', info: 'info',
+  complied: 'success', submitted: 'success', adequate: 'success', closed: 'success', sat: 'success',
+  'partially complied': 'warning', partial: 'warning', deviation: 'warning', insufficient: 'warning', inadequate: 'warning',
+  exclusion: 'danger', 'not addressed': 'danger', missing: 'danger', unsat: 'danger', open: 'warning',
+  ambiguous: 'accent', yes: 'danger', no: 'neutral',
 };
 
 export function Pill({ children, value }) {
   const key = String(value ?? children ?? '').toLowerCase();
-  const cls = TONE[key] || 'bg-slate-600/20 text-slate-300 border-slate-600/40';
-  return <span className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase whitespace-nowrap ${cls}`}>{children ?? value}</span>;
+  return <span className={`status-chip status-chip-${TONE[key] || 'neutral'}`}>{children ?? value}</span>;
 }
 
 const PILL_COLS = /sever|status|risk|likeli|impact|recurring|priority|type|categ/i;
@@ -125,22 +115,22 @@ export function DocSource({ label, value, onChange, filter }) {
 
   return (
     <div className="space-y-2">
-      <label className="text-[11px] font-semibold text-slate-300">{label}</label>
+      <label className="text-[11px] font-semibold text-app-text">{label}</label>
       {docs.length === 0 ? (
-        <div className="text-[11px] text-slate-500 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-          No documents available — upload one on the <span className="text-sky-400">Documents</span> page.
+        <div className="text-[11px] text-app-muted px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border">
+          No documents available — upload one on the <span className="text-app-accent">Documents</span> page.
         </div>
       ) : (
         <select
           value={value?.id || ''}
           onChange={(e) => onPick(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-200"
+          className="w-full px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-[11px] text-app-text"
         >
           <option value="">Select a document…</option>
           {docs.map(d => <option key={d.id} value={d.id}>{d.name} · {d.type}</option>)}
         </select>
       )}
-      {value && <div className="text-[10px] text-emerald-400">✓ {value.name}{value.text ? ` · ${(value.text.length / 1000).toFixed(0)}k chars` : ''}</div>}
+      {value && <div className="text-[10px] text-app-success">✓ {value.name}{value.text ? ` · ${(value.text.length / 1000).toFixed(0)}k chars` : ''}</div>}
     </div>
   );
 }
@@ -177,36 +167,36 @@ export function MultiDocSource({ label, values = [], onChange, filter }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-[11px] font-semibold text-slate-300">{label}</label>
+        <label className="text-[11px] font-semibold text-app-text">{label}</label>
         {docs.length > 0 && (
           <div className="flex items-center gap-2">
             <button type="button" onClick={selectAll} disabled={allSelected}
-              className="text-[10px] font-semibold text-sky-300 hover:text-sky-200 disabled:opacity-40">Select all</button>
-            <span className="text-slate-600">·</span>
+              className="text-[10px] font-semibold text-app-accent hover:text-app-accent disabled:opacity-40">Select all</button>
+            <span className="text-app-faint">·</span>
             <button type="button" onClick={clearAll} disabled={!values.length}
-              className="text-[10px] font-semibold text-slate-400 hover:text-white disabled:opacity-40">Clear</button>
+              className="text-[10px] font-semibold text-app-muted hover:text-app-text disabled:opacity-40">Clear</button>
           </div>
         )}
       </div>
       {docs.length === 0 ? (
-        <div className="text-[11px] text-slate-500 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-          No documents available — upload one on the <span className="text-sky-400">Documents</span> page.
+        <div className="text-[11px] text-app-muted px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border">
+          No documents available — upload one on the <span className="text-app-accent">Documents</span> page.
         </div>
       ) : (
-        <div className="max-h-44 overflow-y-auto rounded-lg bg-slate-900 border border-slate-700 divide-y divide-white/[0.05]">
+        <div className="max-h-44 overflow-y-auto rounded-lg bg-app-surface-soft border border-app-border divide-y divide-app-border-soft">
           {docs.map(d => {
             const on = values.some(v => v.id === d.id);
             return (
-              <label key={d.id} className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-200 cursor-pointer hover:bg-white/[0.03]">
-                <input type="checkbox" checked={on} onChange={e => toggle(d.id, e.target.checked)} className="accent-sky-500" />
+              <label key={d.id} className="flex items-center gap-2 px-3 py-1.5 text-[11px] text-app-text cursor-pointer hover:bg-app-accent-bg">
+                <input type="checkbox" checked={on} onChange={e => toggle(d.id, e.target.checked)} className="" />
                 <span className="truncate flex-1">{d.name}</span>
-                <span className="text-[9px] text-slate-500 shrink-0">{d.type}{d.source === 'library' ? ' · lib' : ''}</span>
+                <span className="text-[10px] text-app-muted shrink-0">{d.type}{d.source === 'library' ? ' · lib' : ''}</span>
               </label>
             );
           })}
         </div>
       )}
-      {values.length > 0 && <div className="text-[10px] text-emerald-400">✓ {values.length} selected</div>}
+      {values.length > 0 && <div className="text-[10px] text-app-success">✓ {values.length} selected</div>}
     </div>
   );
 }
@@ -230,9 +220,8 @@ export function CopyExcelButton({ columns, rows, label = 'Copy for Excel' }) {
     } catch (_) { /* clipboard blocked */ }
   };
   return (
-    <button onClick={copy} type="button"
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 text-violet-300 border border-violet-500/30 text-[11px] font-semibold hover:bg-violet-500/25 transition-colors">
-      {done ? '✓ Copied' : label}
+    <button onClick={copy} type="button" className="app-control-btn btn-sm">
+      {done ? <><Check size={13} /> Copied</> : <><Copy size={13} /> {label}</>}
     </button>
   );
 }
@@ -245,17 +234,17 @@ export function EditableColumns({ columns = [], onChange, label = 'Output column
   const del   = (i) => onChange(columns.filter((_, j) => j !== i));
   return (
     <div className="space-y-1">
-      {label && <label className="text-[11px] font-semibold text-slate-300">{label}</label>}
+      {label && <label className="text-[11px] font-semibold text-app-text">{label}</label>}
       <div className="flex flex-wrap gap-1.5">
         {columns.map((c, i) => (
-          <span key={i} className="flex items-center rounded-lg bg-slate-900 border border-slate-700 pl-2">
+          <span key={i} className="flex items-center rounded-lg bg-app-surface-soft border border-app-border pl-2">
             <input value={c} onChange={e => setAt(i, e.target.value)} placeholder="column"
-              className="bg-transparent text-[11px] text-slate-200 py-1 w-32 outline-none" />
-            <button type="button" onClick={() => del(i)} className="px-1.5 text-slate-500 hover:text-red-300">×</button>
+              className="bg-transparent text-[11px] text-app-text py-1 w-32 outline-none" />
+            <button type="button" onClick={() => del(i)} className="px-1.5 text-app-muted hover:text-app-danger">×</button>
           </span>
         ))}
         <button type="button" onClick={add}
-          className="px-2.5 py-1 rounded-lg border border-dashed border-slate-600 text-[11px] text-slate-400 hover:text-sky-300 hover:border-sky-500/40">+ Add column</button>
+          className="px-2.5 py-1 rounded-lg border border-dashed border-app-border text-[11px] text-app-muted hover:text-app-accent hover:border-app-accent-border">+ Add column</button>
       </div>
     </div>
   );
@@ -292,17 +281,17 @@ export function RichText({ text }) {
   }
   flush();
   return (
-    <div className="text-[12px] leading-relaxed text-slate-200 space-y-2">
+    <div className="text-[12px] leading-relaxed text-app-text space-y-2">
       {blocks.map((b, bi) => b.type === 'table'
         ? (
           <div key={bi} className="space-y-1">
-            <div className="overflow-auto rounded-lg border border-app-border max-h-80">
-              <table className="w-full text-[11px] border-collapse">
-                <thead className="text-[9px] uppercase tracking-widest text-slate-500 bg-white/[0.03] sticky top-0">
-                  <tr>{b.columns.map((c, j) => <th key={j} className="text-left px-3 py-1.5 font-semibold whitespace-nowrap border-b border-app-border">{c}</th>)}</tr>
+            <div className="table-wrap tall">
+              <table className="app-table compact">
+                <thead>
+                  <tr>{b.columns.map((c, j) => <th key={j}>{c}</th>)}</tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04]">
-                  {b.rows.map((r, ri) => <tr key={ri}>{b.columns.map((c, ci) => <td key={ci} className="px-3 py-1.5 text-slate-300 whitespace-pre-wrap break-words">{r[c]}</td>)}</tr>)}
+                <tbody>
+                  {b.rows.map((r, ri) => <tr key={ri}>{b.columns.map((c, ci) => <td key={ci} className="whitespace-pre-wrap break-words">{r[c]}</td>)}</tr>)}
                 </tbody>
               </table>
             </div>
@@ -313,11 +302,11 @@ export function RichText({ text }) {
           <div key={bi} className="space-y-1">
             {b.lines.map((line, i) => {
               if (!line.trim()) return null;
-              if (/^#{1,3}\s/.test(line)) return <p key={i} className="font-bold text-white">{line.replace(/^#{1,3}\s/, '')}</p>;
+              if (/^#{1,3}\s/.test(line)) return <p key={i} className="font-bold text-app-text">{line.replace(/^#{1,3}\s/, '')}</p>;
               if (/^\s*[-*•]\s/.test(line)) return <p key={i} className="pl-3">· {line.replace(/^\s*[-*•]\s/, '')}</p>;
               const parts = line.split(/(\*\*[^*]+\*\*)/g);
               return <p key={i}>{parts.map((p, j) => p.startsWith('**') && p.endsWith('**')
-                ? <strong key={j} className="text-white font-semibold">{p.slice(2, -2)}</strong> : p)}</p>;
+                ? <strong key={j} className="text-app-text font-semibold">{p.slice(2, -2)}</strong> : p)}</p>;
             })}
           </div>
         ))}
@@ -325,151 +314,67 @@ export function RichText({ text }) {
   );
 }
 
-/* ─── Result table with Excel export (+ optional inline editing) ──────────── */
-export function ResultTable({ columns, rows, title, downloadName = 'export', sheetName = 'Sheet1', extraSheets = [], note, enableWord = true, enablePdf = true, enableCsv = true, enableOds = true, editable = false, onRowsChange, onColumnsChange }) {
-  const [busy, setBusy] = useState(false);
-  const [wbusy, setWbusy] = useState(false);
-  const [pbusy, setPbusy] = useState(false);
-  const [cbusy, setCbusy] = useState(false);
-  const [obusy, setObusy] = useState(false);
-  const [err, setErr]   = useState(null);
-
+/* ─── Result table: Download opens the Document Studio (spec 9) ────────────── */
+export function ResultTable({ columns, rows, title, sheetName = 'Sheet1', extraSheets = [], note, editable = false, onRowsChange, onColumnsChange }) {
   const editCell = (ri, col, v) => { if (!onRowsChange) return; const next = rows.map((r, i) => i === ri ? { ...r, [col]: v } : r); onRowsChange(next); };
   const addRow   = () => { if (!onRowsChange) return; const blank = {}; columns.forEach(c => { blank[c] = ''; }); onRowsChange([...rows, blank]); };
   const delRow   = (ri) => { if (!onRowsChange) return; onRowsChange(rows.filter((_, i) => i !== ri)); };
   const renameCol = (idx, name) => { if (!onColumnsChange) return; const next = [...columns]; next[idx] = name; onColumnsChange(next); };
 
-  const onDownload = async () => {
-    setBusy(true); setErr(null);
-    try {
-      await downloadXlsx([{ name: sheetName, columns, rows, title }, ...extraSheets], downloadName);
-    } catch (e) { setErr(e.message); }
-    setBusy(false);
-  };
-
-  const onWord = async () => {
-    setWbusy(true); setErr(null);
-    try {
-      await downloadWord({ title: title || sheetName, columns, rows, filename: downloadName });
-    } catch (e) { setErr(e.message); }
-    setWbusy(false);
-  };
-
-  const onPdf = async () => {
-    setPbusy(true); setErr(null);
-    try {
-      await downloadPdf({ title: title || sheetName, columns, rows, filename: downloadName });
-    } catch (e) { setErr(e.message); }
-    setPbusy(false);
-  };
-
-  const onCsv = async () => {
-    setCbusy(true); setErr(null);
-    try {
-      await downloadCsv({ columns, rows, filename: downloadName });
-    } catch (e) { setErr(e.message); }
-    setCbusy(false);
-  };
-
-  const onOds = async () => {
-    setObusy(true); setErr(null);
-    try {
-      await downloadOds([{ name: sheetName, columns, rows, title }, ...extraSheets], downloadName);
-    } catch (e) { setErr(e.message); }
-    setObusy(false);
-  };
+  const download = () => openStudio({
+    title: title || sheetName,
+    subtitle: `${rows.length} row${rows.length === 1 ? '' : 's'}`,
+    sections: [
+      { type: 'table', title: title || sheetName, columns, rows },
+      ...extraSheets.filter(s => s?.columns?.length).map(s => ({ type: 'table', title: s.title || s.name, columns: s.columns, rows: s.rows || [] })),
+    ],
+  });
 
   if (!columns?.length) return null;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="text-[11px] text-slate-400">{title} <span className="text-slate-500">· {rows.length} row{rows.length === 1 ? '' : 's'}</span></div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="text-[11px] text-app-muted">{title} <span className="text-app-faint">· {rows.length} row{rows.length === 1 ? '' : 's'}</span></div>
+        <div className="panel-actions">
           <CopyExcelButton columns={columns} rows={rows} />
-          <button
-            onClick={onDownload}
-            disabled={busy || !rows.length}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-500/25 transition-colors disabled:opacity-40"
-          >
-            {busy ? <Spinner /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>}
-            Excel
+          <button type="button" onClick={download} disabled={!rows.length} className="app-control-btn btn-sm" aria-label={`Download ${title || 'table'}`}>
+            <Download size={13} /> Download
           </button>
-          {enableCsv && (
-            <button
-              onClick={onCsv}
-              disabled={cbusy || !rows.length}
-              title="Download as CSV"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/15 text-teal-300 border border-teal-500/30 text-[11px] font-semibold hover:bg-teal-500/25 transition-colors disabled:opacity-40"
-            >
-              {cbusy ? <Spinner /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>}
-              CSV
-            </button>
-          )}
-          {enableOds && (
-            <button
-              onClick={onOds}
-              disabled={obusy || !rows.length}
-              title="Download as OpenDocument Spreadsheet (.ods)"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lime-500/15 text-lime-300 border border-lime-500/30 text-[11px] font-semibold hover:bg-lime-500/25 transition-colors disabled:opacity-40"
-            >
-              {obusy ? <Spinner /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>}
-              ODS
-            </button>
-          )}
-          {enableWord && (
-            <button
-              onClick={onWord}
-              disabled={wbusy || !rows.length}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[11px] font-semibold hover:bg-sky-500/25 transition-colors disabled:opacity-40"
-            >
-              {wbusy ? <Spinner /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-              Word
-            </button>
-          )}
-          {enablePdf && (
-            <button
-              onClick={onPdf}
-              disabled={pbusy || !rows.length}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-[11px] font-semibold hover:bg-red-500/25 transition-colors disabled:opacity-40"
-            >
-              {pbusy ? <Spinner /> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-              PDF
-            </button>
-          )}
         </div>
       </div>
-      <ErrorNote>{err}</ErrorNote>
-      <div className="overflow-auto rounded-lg border border-app-border max-h-[60vh]">
-        <table className="w-full text-[11px] border-collapse">
-          <thead className="text-[9px] uppercase tracking-widest text-slate-500 bg-white/[0.03] sticky top-0">
+      <div className="table-wrap rounded-lg border border-app-border" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+        <table className="app-table compact">
+          <thead>
             <tr>
               {columns.map((c, ci) => (
-                <th key={ci} className="text-left px-3 py-2 font-semibold whitespace-nowrap border-b border-app-border">
+                <th key={ci}>
                   {editable && onColumnsChange
-                    ? <input value={c} onChange={e => renameCol(ci, e.target.value)} className="bg-transparent text-slate-300 uppercase outline-none w-28" />
+                    ? <input value={c} onChange={e => renameCol(ci, e.target.value)} aria-label="Column name" className="bg-transparent text-app-muted uppercase outline-none w-28" />
                     : c}
                 </th>
               ))}
-              {editable && <th className="border-b border-app-border w-8" />}
+              {editable && <th className="w-8" />}
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={columns.length + (editable ? 1 : 0)}><div className="app-empty"><div className="app-empty-title">No rows</div><div className="app-empty-text">Nothing matched this request. Adjust the prompt or the selected documents and run it again.</div></div></td></tr>
+            )}
             {rows.map((r, i) => (
-              <tr key={i} className="hover:bg-white/[0.02] align-top">
+              <tr key={i} className="align-top">
                 {columns.map(c => (
-                  <td key={c} className="px-3 py-2 text-slate-300">
+                  <td key={c}>
                     {editable
-                      ? <textarea value={r[c] ?? ''} onChange={e => editCell(i, c, e.target.value)} rows={1}
-                          className="w-full min-w-[7rem] bg-slate-900/60 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-200 resize-y" />
+                      ? <textarea value={r[c] ?? ''} onChange={e => editCell(i, c, e.target.value)} rows={1} aria-label={c} className="app-textarea" style={{ minHeight: 30, minWidth: '7rem' }} />
                       : (PILL_COLS.test(c) && String(r[c] ?? '').trim() && String(r[c]).length < 24
                         ? <Pill value={String(r[c])}>{String(r[c])}</Pill>
                         : <span className="whitespace-pre-wrap break-words">{r[c] ?? ''}</span>)}
                   </td>
                 ))}
                 {editable && (
-                  <td className="px-2 py-2 text-center">
-                    <button type="button" onClick={() => delRow(i)} className="text-slate-500 hover:text-red-300" title="Delete row">×</button>
+                  <td className="text-center">
+                    <button type="button" onClick={() => delRow(i)} className="text-app-muted hover:text-app-danger" aria-label="Delete row">×</button>
                   </td>
                 )}
               </tr>
@@ -478,10 +383,9 @@ export function ResultTable({ columns, rows, title, downloadName = 'export', she
         </table>
       </div>
       {editable && (
-        <button type="button" onClick={addRow}
-          className="px-2.5 py-1 rounded-lg border border-dashed border-slate-600 text-[11px] text-slate-400 hover:text-sky-300 hover:border-sky-500/40">+ Add row</button>
+        <button type="button" onClick={addRow} className="app-ghost-btn btn-sm">+ Add row</button>
       )}
-      {note && <div className="text-[10px] text-slate-500">{note}</div>}
+      {note && <div className="text-[10px] text-app-muted">{note}</div>}
     </div>
   );
 }
@@ -490,13 +394,13 @@ export function ResultTable({ columns, rows, title, downloadName = 'export', she
 export function Field({ label, value, onChange, placeholder, textarea, rows = 3 }) {
   return (
     <div className="space-y-1">
-      {label && <label className="text-[11px] font-semibold text-slate-300">{label}</label>}
+      {label && <label className="text-[11px] font-semibold text-app-text">{label}</label>}
       {textarea ? (
         <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-200 placeholder-slate-600 resize-y" />
+          className="w-full px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-[11px] text-app-text placeholder-app-faint resize-y" />
       ) : (
         <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-          className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-200 placeholder-slate-600" />
+          className="w-full px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-[11px] text-app-text placeholder-app-faint" />
       )}
     </div>
   );
@@ -525,40 +429,40 @@ export function FeedbackBar({ module, subject = '' }) {
   const RATING_LABEL = { partially_satisfied: 'Partially Satisfied', not_satisfied: 'Not Satisfied' };
 
   if (state === 'sent') {
-    return <div className="text-[10px] text-emerald-400 flex items-center gap-1.5 pt-1">✓ Thank you — feedback recorded; it will guide future results in this module.</div>;
+    return <div className="text-[10px] text-app-success flex items-center gap-1.5 pt-1">✓ Thank you — feedback recorded; it will guide future results in this module.</div>;
   }
 
   return (
     <div className="pt-2 mt-1 border-t border-app-border space-y-2">
       {state === 'idle' && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Rate this output</span>
+          <span className="text-[10px] text-app-muted uppercase tracking-widest font-bold">Rate this output</span>
           <button onClick={() => pick('satisfied')} disabled={busy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold hover:bg-emerald-500/25 disabled:opacity-40">
-            🙂 Satisfied
+            className="app-control-btn btn-sm">
+            <Smile size={13} /> Satisfied
           </button>
           <button onClick={() => pick('partially_satisfied')} disabled={busy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-semibold hover:bg-amber-500/25 disabled:opacity-40">
-            😐 Partially Satisfied
+            className="app-control-btn btn-sm">
+            <Meh size={13} /> Partially Satisfied
           </button>
           <button onClick={() => pick('not_satisfied')} disabled={busy}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-[10px] font-semibold hover:bg-red-500/25 disabled:opacity-40">
-            🙁 Not Satisfied
+            className="app-control-btn btn-sm">
+            <Frown size={13} /> Not Satisfied
           </button>
         </div>
       )}
       {state === 'remarks' && (
         <div className="space-y-2">
-          <div className="text-[10px] text-slate-400">Selected: <span className="font-semibold text-slate-200">{RATING_LABEL[rating]}</span> — add a comment, suggestion or correction (used to improve future results).</div>
+          <div className="text-[10px] text-app-muted">Selected: <span className="font-semibold text-app-text">{RATING_LABEL[rating]}</span> — add a comment, suggestion or correction (used to improve future results).</div>
           <textarea value={remarks} onChange={e => setRemarks(e.target.value)} rows={2}
             placeholder="What was wrong or what should change? (optional)"
-            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-200 placeholder-slate-600 resize-y" />
+            className="w-full px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-[11px] text-app-text placeholder-app-faint resize-y" />
           <div className="flex items-center gap-2">
             <button onClick={() => submit(rating, remarks)} disabled={busy}
-              className="px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[10px] font-semibold hover:bg-sky-500/25 disabled:opacity-40 flex items-center gap-1.5">
+              className="px-3 py-1.5 rounded-lg bg-app-accent-bg text-app-accent border border-app-accent-border text-[10px] font-semibold hover:bg-app-accent-bg disabled:opacity-40 flex items-center gap-1.5">
               {busy ? <Spinner /> : null} Submit feedback
             </button>
-            <button onClick={() => { setState('idle'); setRemarks(''); }} className="px-3 py-1.5 rounded-lg text-[10px] text-slate-400 hover:text-white">Cancel</button>
+            <button onClick={() => { setState('idle'); setRemarks(''); }} className="px-3 py-1.5 rounded-lg text-[10px] text-app-muted hover:text-app-text">Cancel</button>
           </div>
         </div>
       )}
@@ -586,7 +490,7 @@ export function ModuleChat({ module, title = 'Ask the Assistant', docText, docNa
       const resp = await chat(history.map(m => ({ role: m.role, content: m.content })), undefined, docText, docName, title || module);
       setMessages(h => [...h, { role: 'assistant', content: resp.content, citations: resp.citations || [] }]);
     } catch (e) {
-      setMessages(h => [...h, { role: 'assistant', content: `⚠ ${e.message}`, error: true }]);
+      setMessages(h => [...h, { role: 'assistant', content: e.message, error: true }]);
     }
     setBusy(false);
   };
@@ -597,28 +501,28 @@ export function ModuleChat({ module, title = 'Ask the Assistant', docText, docNa
         <div className="flex flex-wrap gap-1.5">
           {suggestions.map((s, i) => (
             <button key={i} onClick={() => send(s)} disabled={busy}
-              className="text-left text-[10px] px-2.5 py-1.5 rounded-lg bg-white/[0.02] border border-app-border hover:bg-sky-500/[0.06] hover:border-sky-500/30 text-slate-300 disabled:opacity-40">
+              className="text-left text-[10px] px-2.5 py-1.5 rounded-lg bg-app-surface-soft border border-app-border hover:bg-app-accent-bg hover:border-app-accent-border text-app-text disabled:opacity-40">
               {s}
             </button>
           ))}
         </div>
       )}
       {messages.length > 0 && (
-        <div className="max-h-72 overflow-y-auto space-y-3 rounded-lg bg-slate-950/30 border border-app-border p-3">
+        <div className="max-h-72 overflow-y-auto space-y-3 rounded-lg bg-app-surface-soft border border-app-border p-3">
           {messages.map((m, i) => (
             <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[9px] font-bold shrink-0 ${m.role === 'user' ? 'bg-slate-700 text-slate-200' : 'bg-gradient-to-br from-sky-500 to-indigo-500 text-white'}`}>{m.role === 'user' ? 'U' : 'AI'}</div>
-              <div className={`max-w-[85%] rounded-xl px-3 py-2 ${m.role === 'user' ? 'bg-slate-700/50' : m.error ? 'bg-red-500/10 border border-red-500/30' : 'bg-app-panel border border-app-border'}`}>
+              <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0 ${m.role === 'user' ? 'bg-app-surface-raised text-app-text' : 'bg-app-btn text-app-btn-text'}`}>{m.role === 'user' ? 'U' : 'AI'}</div>
+              <div className={`max-w-[85%] rounded-xl px-3 py-2 ${m.role === 'user' ? 'bg-app-surface-raised' : m.error ? 'bg-app-danger-bg border border-app-danger-border' : 'bg-app-panel border border-app-border'}`}>
                 <RichText text={m.content} />
                 {m.citations?.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
-                    {m.citations.map((c, j) => <span key={j} className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-300 border border-violet-500/30">{c}</span>)}
+                    {m.citations.map((c, j) => <span key={j} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-app-violet-bg text-app-advisory-soft border border-app-advisory-border">{c}</span>)}
                   </div>
                 )}
               </div>
             </div>
           ))}
-          {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Thinking…</div>}
+          {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Thinking…</div>}
           <div ref={endRef} />
         </div>
       )}
@@ -629,10 +533,10 @@ export function ModuleChat({ module, title = 'Ask the Assistant', docText, docNa
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
           rows={1}
           placeholder={placeholder || 'Ask a question about this module…'}
-          className="flex-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-[12px] text-slate-200 placeholder-slate-600 resize-none max-h-28"
+          className="flex-1 px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-[12px] text-app-text placeholder-app-faint resize-none max-h-28"
         />
         <button onClick={() => send()} disabled={busy || !input.trim()}
-          className="px-3 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-500 text-white text-[11px] font-semibold disabled:opacity-40 hover:opacity-90">Send</button>
+          className="px-3 py-2 rounded-lg bg-app-btn text-app-btn-text text-[11px] font-semibold disabled:opacity-40 hover:opacity-90">Send</button>
       </div>
     </Card>
   );

@@ -180,9 +180,9 @@ export default function Converter() {
           const active = mode === t.id;
           return (
             <button key={t.id} onClick={() => setMode(t.id)}
-              className={`text-left rounded-xl border px-4 py-3 transition-colors ${active ? 'bg-gradient-to-r from-sky-500/15 to-indigo-500/15 border-sky-500/40' : 'bg-app-panel border-app-border hover:border-slate-600'}`}>
-              <div className={`text-sm font-bold ${active ? 'text-white' : 'text-slate-300'}`}>{t.label}</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">{t.desc}</div>
+              className={`text-left rounded-xl border px-4 py-3 transition-colors ${active ? 'bg-app-accent-bg border-app-accent-border' : 'bg-app-panel border-app-border hover:border-app-border'}`}>
+              <div className={`text-sm font-bold ${active ? 'text-app-text' : 'text-app-text'}`}>{t.label}</div>
+              <div className="text-[10px] text-app-muted mt-0.5">{t.desc}</div>
             </button>
           );
         })}
@@ -194,7 +194,7 @@ export default function Converter() {
         <div>
           <input ref={fileRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={onUpload} />
           <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors disabled:opacity-40">
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors disabled:opacity-40">
             {uploading ? <Spinner /> : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
             {uploading ? 'Reading…' : 'Or upload file(s) for this conversion'}
           </button>
@@ -202,9 +202,9 @@ export default function Converter() {
         {uploads.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {uploads.map((u, i) => (
-              <span key={i} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
+              <span key={i} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-app-surface-raised border border-app-border text-app-text">
                 {u.name}
-                <button onClick={() => setUploads(us => us.filter((_, j) => j !== i))} className="text-slate-500 hover:text-red-300">×</button>
+                <button onClick={() => setUploads(us => us.filter((_, j) => j !== i))} className="text-app-muted hover:text-app-danger">×</button>
               </span>
             ))}
           </div>
@@ -216,11 +216,11 @@ export default function Converter() {
         <>
           <Card title="2 · Extraction Request" desc="Choose a preset or write a custom prompt, and edit the output columns before extracting.">
             <div>
-              <label className="text-[11px] font-semibold text-slate-300">Preset</label>
+              <label className="text-[11px] font-semibold text-app-text">Preset</label>
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {Object.keys(PRESETS).map(p => (
                   <button key={p} onClick={() => applyPreset(p)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${preset === p ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{p}</button>
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${preset === p ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border hover:bg-app-surface-raised'}`}>{p}</button>
                 ))}
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function Converter() {
             <div className="flex flex-wrap gap-1.5">
               {EDIT_PRESETS.map((p, i) => (
                 <button key={i} onClick={() => setInstruction(p)}
-                  className="px-2 py-1 rounded-lg text-[10px] font-semibold border bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700">{p.split(' ').slice(0, 3).join(' ')}…</button>
+                  className="px-2 py-1 rounded-lg text-[10px] font-semibold border bg-app-surface-raised text-app-muted border-app-border hover:bg-app-surface-raised">{p.split(' ').slice(0, 3).join(' ')}…</button>
               ))}
             </div>
             <RunButton onClick={runEdit} busy={editBusy} busyLabel="Working on the document…">Apply Changes</RunButton>
@@ -272,12 +272,12 @@ export default function Converter() {
           {edited && (
             <Card title="3 · Revised Document" right={
               <div className="flex items-center gap-2">
-                <button onClick={() => downloadEdit('word')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[11px] font-semibold hover:bg-sky-500/25 disabled:opacity-40">{dlBusy ? <Spinner /> : null} Word</button>
-                <button onClick={() => downloadEdit('pdf')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/15 text-red-300 border border-red-500/30 text-[11px] font-semibold hover:bg-red-500/25 disabled:opacity-40">{dlBusy ? <Spinner /> : null} PDF</button>
-                <button onClick={() => downloadEdit('txt')} className="px-3 py-1.5 rounded-lg bg-slate-700/40 text-slate-300 border border-slate-600 text-[11px] font-semibold hover:bg-slate-700/70">TXT</button>
+                <button onClick={() => downloadEdit('word')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-accent-bg text-app-accent border border-app-accent-border text-[11px] font-semibold hover:bg-app-accent-bg disabled:opacity-40">{dlBusy ? <Spinner /> : null} Word</button>
+                <button onClick={() => downloadEdit('pdf')} disabled={dlBusy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-danger-bg text-app-danger border border-app-danger-border text-[11px] font-semibold hover:bg-app-danger-bg disabled:opacity-40">{dlBusy ? <Spinner /> : null} PDF</button>
+                <button onClick={() => downloadEdit('txt')} className="px-3 py-1.5 rounded-lg bg-app-surface-raised text-app-text border border-app-border text-[11px] font-semibold hover:bg-app-surface-raised">TXT</button>
               </div>
             }>
-              <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-slate-950/40 border border-app-border p-4 text-[12px] text-slate-200 whitespace-pre-wrap leading-relaxed">
+              <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-app-surface-soft border border-app-border p-4 text-[12px] text-app-text whitespace-pre-wrap leading-relaxed">
                 {edited.content}
               </div>
               <FeedbackBar module="converter" subject={edited.name} />
@@ -291,7 +291,7 @@ export default function Converter() {
           <div>
             <input ref={cvFileRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={onPickConvert} />
             <button onClick={() => cvFileRef.current?.click()} disabled={cvBusy}
-              className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors disabled:opacity-40">
+              className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors disabled:opacity-40">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
               Add file(s) to convert
             </button>
@@ -300,20 +300,20 @@ export default function Converter() {
           {cvFiles.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {cvFiles.map((f, i) => (
-                <span key={i} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
-                  {f.name} <span className="text-slate-500">· {(f.size / 1024 / 1024).toFixed(1)}MB</span>
-                  <button onClick={() => setCvFiles(fs => fs.filter((_, j) => j !== i))} className="text-slate-500 hover:text-red-300">×</button>
+                <span key={i} className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg bg-app-surface-raised border border-app-border text-app-text">
+                  {f.name} <span className="text-app-muted">· {(f.size / 1024 / 1024).toFixed(1)}MB</span>
+                  <button onClick={() => setCvFiles(fs => fs.filter((_, j) => j !== i))} className="text-app-muted hover:text-app-danger">×</button>
                 </span>
               ))}
-              <button onClick={() => setCvFiles([])} className="text-[10px] px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-red-300">Clear all</button>
+              <button onClick={() => setCvFiles([])} className="text-[10px] px-2 py-1 rounded-lg bg-app-surface-raised border border-app-border text-app-muted hover:text-app-danger">Clear all</button>
             </div>
           )}
 
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="text-[11px] font-semibold text-slate-300 block mb-1">Convert to</label>
+              <label className="text-[11px] font-semibold text-app-text block mb-1">Convert to</label>
               <select value={cvFormat} onChange={e => setCvFormat(e.target.value)}
-                className="text-[12px] px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                className="text-[12px] px-3 py-2 rounded-lg bg-app-surface-soft border border-app-border text-app-text">
                 {CONVERT_FORMATS.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
               </select>
             </div>
@@ -323,11 +323,11 @@ export default function Converter() {
           </div>
 
           {['XLSX', 'CSV', 'ODS'].includes(cvFormat) && (
-            <p className="text-[10px] text-slate-500">Structured formats (Excel / CSV / ODS) organise each document into the matching official register (equipment / inspection-remarks) — one row per item. Text formats (TXT / Word / ODT) keep the full document content.</p>
+            <p className="text-[10px] text-app-muted">Structured formats (Excel / CSV / ODS) organise each document into the matching official register (equipment / inspection-remarks) — one row per item. Text formats (TXT / Word / ODT) keep the full document content.</p>
           )}
           <ErrorNote>{cvErr}</ErrorNote>
           {cvMsg && (
-            <div className="flex items-start gap-2 bg-emerald-500/[0.08] border border-emerald-500/30 rounded-lg px-3 py-2 text-[11px] text-emerald-300">
+            <div className="flex items-start gap-2 bg-app-success-bg border border-app-success-border rounded-lg px-3 py-2 text-[11px] text-app-success">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               {cvMsg}
             </div>

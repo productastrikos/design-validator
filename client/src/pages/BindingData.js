@@ -44,12 +44,12 @@ export default function BindingData() {
         <Field label="System (optional)" value={system} onChange={setSystem} placeholder="e.g. Public address system" />
         <RunButton onClick={run} busy={busy} busyLabel="Running gap analysis…">Run Gap Analysis</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Deriving required deliverables from the POTS and checking the submission.</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Deriving required deliverables from the POTS and checking the submission.</div>}
       </Card>
 
       {res && (
         <>
-          <Card title="Completeness Summary" right={<span className="text-[11px] text-slate-400">{res.pots} vs {res.binding}</span>}>
+          <Card title="Completeness Summary" right={<span className="text-[11px] text-app-muted">{res.pots} vs {res.binding}</span>}>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5">
               <StatTile label="Completeness" value={`${res.completeness}%`} tone="emerald" />
               <StatTile label="Required Items" value={res.total} tone="sky" />

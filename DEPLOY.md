@@ -125,6 +125,21 @@ MAX_UPLOAD_MB=100
 - The two passwords apply only when the accounts are first created, so set them **before the
   first start**. After that, change passwords under **User Management**.
 
+### Admin sign-in
+
+The admin username is `admin`. Its password is whatever `ADMIN_PASSWORD` held when the accounts
+were created. The password is deliberately kept out of this repository, because the repository is
+public.
+
+**If the server already has accounts** (an earlier deployment left `server/data/users.json`),
+editing `ADMIN_PASSWORD` changes nothing. Change it in the app instead, which keeps every other
+account:
+
+1. Sign in as `admin` with the current password.
+2. Open **Role-Based Access Control**, click **Edit** on *System Administrator*, type the new
+   password, and save.
+3. Put the same value in `ADMIN_PASSWORD` in `server/.env`, so the file and the account agree.
+
 ### Step 4: Confirm the key after starting
 
 Once section 6 is done, sign in and open **Settings → Test Connection**. It sends one small real
@@ -282,7 +297,11 @@ Then open `https://designvalidator.astrikos.xyz:8443`, sign in, and use
 **Settings → Test Connection** to prove the API key works and the knowledge base is loaded.
 
 For a full functional check, upload the fictitious documents in `sample-docs/`. Its
-`README.md` lists which file goes in which module and what each module should find.
+`README.md` lists which file goes in which module and what each module should find, and
+`DEMO_GUIDE.md` is a step-by-step demo script with sample questions.
+
+Also check that **Download** on any result table opens the Document studio, and that a PDF
+downloads from it. PDF and PNG are built in the browser; the other formats come from the backend.
 
 ## 10. Notes
 

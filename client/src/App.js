@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { SocketProvider } from './services/socket';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -11,8 +11,11 @@ import Settings      from './pages/Settings';
 import UserManagement from './pages/UserManagement';
 import AuditLog       from './pages/AuditLog';
 import InteractionHistory from './pages/InteractionHistory';
-import Login         from './pages/Login';
+import Login         from './components/Login';
 import Layout        from './components/Layout';
+import { OverlayHost } from './components/ui/Overlays';
+import { StudioHost } from './components/studio/DocumentStudio';
+import { applyTheme, useTheme } from './lib/theme';
 import DrawingExtract    from './pages/DrawingExtract';
 import InspectionReports from './pages/InspectionReports';
 import LessonsLearned    from './pages/LessonsLearned';
@@ -80,23 +83,16 @@ function AppRoutes() {
   useBaseKnowledgeCache(user);
   useLibraryCache(user);
 
-  const [theme, setTheme] = useState(() => {
-    const saved = localStorage.getItem('app_theme');
-    return (saved === 'light' || saved === 'dark') ? saved : 'dark';
-  });
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-    localStorage.setItem('app_theme', theme);
-  }, [theme]);
-
-  const handleThemeToggle = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  const theme = useTheme();
+  const handleThemeToggle = () => applyTheme(theme === 'dark' ? 'light' : 'dark');
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen"
-        style={{ background: 'var(--app-darker, #0a0d14)', color: 'var(--app-text-faint, #6b7280)' }}>
-        <span className="text-sm">Loading…</span>
+      <div className="flex items-center justify-center h-screen">
+        <div className="app-loading">
+          <div className="app-loading-orbit" />
+          <div className="app-loading-text">Loading…</div>
+        </div>
       </div>
     );
   }
@@ -154,6 +150,8 @@ function App() {
       <SocketProvider>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppRoutes />
+          <OverlayHost />
+          <StudioHost />
         </Router>
       </SocketProvider>
     </AuthProvider>

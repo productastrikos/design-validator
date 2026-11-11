@@ -134,17 +134,17 @@ export default function DrawingExtract() {
         <div className="grid md:grid-cols-2 gap-4">
           <DocSource label="Pre-loaded / uploaded drawing" value={source} onChange={(v) => { setSource(v); setFile(null); setResult(null); setVResult(null); }} />
           <div className="space-y-2">
-            <label className="text-[11px] font-semibold text-slate-300">Or upload a drawing</label>
+            <label className="text-[11px] font-semibold text-app-text">Or upload a drawing</label>
             <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp,.webp,.dwg,.dxf,application/octet-stream" className="hidden" onChange={onUpload} />
             <button onClick={() => fileRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors">
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
               {file ? file.name : 'PDF · image · AutoCAD .dwg / .dxf'}
             </button>
             <div className="flex gap-1.5">
-              <button onClick={() => setMode('extract')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'extract' ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>Extract</button>
-              <button onClick={() => setMode('validate')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'validate' ? 'bg-violet-500/20 text-violet-300 border-violet-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>Validate</button>
-              <button onClick={() => setMode('compare')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'compare' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>Compare</button>
+              <button onClick={() => setMode('extract')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'extract' ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border'}`}>Extract</button>
+              <button onClick={() => setMode('validate')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'validate' ? 'bg-app-violet-bg text-app-advisory-soft border-app-advisory-border' : 'bg-app-surface-raised text-app-muted border-app-border'}`}>Validate</button>
+              <button onClick={() => setMode('compare')} className={`flex-1 px-3 py-1.5 rounded-lg text-[11px] font-semibold border ${mode === 'compare' ? 'bg-app-warning-bg text-app-warning border-app-warning-border' : 'bg-app-surface-raised text-app-muted border-app-border'}`}>Compare</button>
             </div>
           </div>
         </div>
@@ -152,24 +152,24 @@ export default function DrawingExtract() {
 
       {mode === 'extract' ? (
         <Card title="2 · Extraction Request" desc="Choose what to extract and edit the target columns. Or pull a BOM straight from the drawing with one click — no prompt needed.">
-          <div className="flex items-center gap-2 flex-wrap p-2 rounded-lg bg-emerald-500/[0.06] border border-emerald-500/20">
-            <span className="text-[10px] text-emerald-300 font-semibold">Quick:</span>
+          <div className="flex items-center gap-2 flex-wrap p-2 rounded-lg bg-app-success-bg border border-app-success-border">
+            <span className="text-[10px] text-app-success font-semibold">Quick:</span>
             <button onClick={runBomNoPrompt} disabled={busy}
-              className="px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold hover:bg-emerald-500/25 disabled:opacity-40">
+              className="px-3 py-1.5 rounded-lg bg-app-success-bg text-app-success border border-app-success-border text-[11px] font-semibold hover:bg-app-success-bg disabled:opacity-40">
               Extract BOM / Equipment List (no prompt)
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {Object.keys(PRESETS).map(p => (
               <button key={p} onClick={() => applyPreset(p)}
-                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${preset === p ? 'bg-sky-500/20 text-sky-300 border-sky-500/40' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}`}>{p}</button>
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors ${preset === p ? 'bg-app-accent-bg text-app-accent border-app-accent-border' : 'bg-app-surface-raised text-app-muted border-app-border hover:bg-app-surface-raised'}`}>{p}</button>
             ))}
           </div>
           <Field label="Prompt (what to extract — optional for preset/BOM extraction)" value={prompt} onChange={setPrompt} textarea rows={3} />
           <EditableColumns columns={columns} onChange={setColumns} label="Target columns (edit before extracting)" />
           <RunButton onClick={runExtract} busy={busy} busyLabel="Reading drawing sheet-by-sheet…">Extract to Table</RunButton>
           <ErrorNote>{error}</ErrorNote>
-          {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Large multi-page drawings can take 30–90s as each sheet is interpreted.</div>}
+          {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Large multi-page drawings can take 30–90s as each sheet is interpreted.</div>}
         </Card>
       ) : mode === 'validate' ? (
         <Card title="2 · Validate Drawing" desc="The drawing is read and validated against classification rules (knowledge base), and optionally against a Build Specification, the Binding data of the corresponding equipment/system, and historical Lessons Learnt.">
@@ -180,18 +180,18 @@ export default function DrawingExtract() {
           </div>
           <RunButton onClick={runValidate} busy={busy} busyLabel="Validating against rules, spec, binding data & lessons…">Validate Drawing</RunButton>
           <ErrorNote>{error}</ErrorNote>
-          <p className="text-[10px] text-slate-500">Validates against classification rules + any selected Build Specification and Binding data, plus relevant Lessons Learnt.</p>
+          <p className="text-[10px] text-app-muted">Validates against classification rules + any selected Build Specification and Binding data, plus relevant Lessons Learnt.</p>
         </Card>
       ) : (
         <Card title="2 · Compare Drawings" desc="The first drawing is the one selected/uploaded above. Pick a second drawing, then compare both via a prompt.">
           <div className="grid md:grid-cols-2 gap-4">
             <DocSource label="Second drawing (pre-loaded / uploaded)" value={sourceB} onChange={(v) => { setSourceB(v); setFileB(null); setCResult(null); }} />
             <div className="space-y-2">
-              <label className="text-[11px] font-semibold text-slate-300">Or upload the second drawing</label>
+              <label className="text-[11px] font-semibold text-app-text">Or upload the second drawing</label>
               <input ref={fileRefB} type="file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp,.webp,.dwg,.dxf,application/octet-stream" className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) { setFileB(f); setSourceB(null); setCResult(null); } }} />
               <button onClick={() => fileRefB.current?.click()}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-600 hover:border-sky-500/50 text-[11px] text-slate-400 hover:text-sky-300 transition-colors">
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-dashed border-app-border hover:border-app-accent-border text-[11px] text-app-muted hover:text-app-accent transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                 {fileB ? fileB.name : 'PDF · image · AutoCAD .dwg / .dxf'}
               </button>
@@ -214,11 +214,11 @@ export default function DrawingExtract() {
               <StatTile label={cad ? 'CAD' : 'Ship No'} value={cad ? (cad.kind?.toUpperCase() || 'CAD') : (tb.shipNo || '—')} tone="slate" />
               <StatTile label={cad ? 'Compartments' : 'Cable Types'} value={cad ? (cad.regions?.length || 0) : (cableLegend.length || '—')} tone="amber" />
             </div>
-            {tb.title && <div className="text-[11px] text-slate-400">Title: <span className="text-slate-200">{tb.title}</span>{tb.system ? ` · System: ${tb.system}` : ''}</div>}
-            {cad?.note && <div className="text-[10px] text-amber-400">{cad.note}</div>}
+            {tb.title && <div className="text-[11px] text-app-muted">Title: <span className="text-app-text">{tb.title}</span>{tb.system ? ` · System: ${tb.system}` : ''}</div>}
+            {cad?.note && <div className="text-[10px] text-app-warning">{cad.note}</div>}
             {cableLegend.length > 0 && (
-              <div className="text-[10px] text-slate-500">
-                <span className="font-semibold text-slate-400">Cable legend resolved: </span>
+              <div className="text-[10px] text-app-muted">
+                <span className="font-semibold text-app-muted">Cable legend resolved: </span>
                 {cableLegend.map((c, i) => <span key={i} className="mr-2">[{c.ref}] {c.type || c.description}{c.size ? ` (${c.size})` : ''};</span>)}
               </div>
             )}
@@ -241,7 +241,7 @@ export default function DrawingExtract() {
       )}
 
       {mode === 'validate' && vResult && (
-        <Card title="3 · Class Rule Validation Findings" right={<span className="text-[11px] text-slate-400">{vResult.drawing}</span>}>
+        <Card title="3 · Class Rule Validation Findings" right={<span className="text-[11px] text-app-muted">{vResult.drawing}</span>}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-2">
             <StatTile label="Findings" value={vResult.total} tone="sky" />
             {(vResult.statuses || []).map(s => (
@@ -251,7 +251,7 @@ export default function DrawingExtract() {
           </div>
           <ResultTable columns={V_HEAD} rows={vRows} title="Class Rule Validation" sheetName="Class Rule Validation"
             downloadName={`IRS_Validation_${(vResult.drawing || 'drawing').replace(/[^a-z0-9]+/gi, '_').slice(0, 24)}`} />
-          {vResult.citations?.length > 0 && <div className="text-[10px] text-slate-500 mt-2">Grounded in: {vResult.citations.join(' · ')}</div>}
+          {vResult.citations?.length > 0 && <div className="text-[10px] text-app-muted mt-2">Grounded in: {vResult.citations.join(' · ')}</div>}
           <FeedbackBar module="drawings" subject={`Class rule validation · ${vResult.drawing}`} />
         </Card>
       )}

@@ -42,7 +42,7 @@ function OfferResult({ system, r }) {
   const recRows    = remap(r.recommendations, R_COLS, R_HEAD);
   const slug = (r.offer || 'offer').replace(/[^a-z0-9]+/gi, '_').slice(0, 24);
   return (
-    <Card title={`Offer: ${r.offer}`} right={<span className="text-[11px] text-emerald-400 font-bold">{r.compliancePct}% compliant</span>}>
+    <Card title={`Offer: ${r.offer}`} right={<span className="text-[11px] text-app-success font-bold">{r.compliancePct}% compliant</span>}>
       <div className="grid grid-cols-3 md:grid-cols-7 gap-2.5">
         <StatTile label="Compliance" value={`${r.compliancePct}%`} tone="emerald" />
         <StatTile label="Total" value={r.total} tone="sky" />
@@ -55,7 +55,7 @@ function OfferResult({ system, r }) {
         note="The Excel download also includes the technical queries and the explicit recommendations sheets." />
       {recRows.length > 0 && (
         <div className="space-y-2">
-          <div className="text-[11px] font-bold text-white">Recommendations (explicit actions — e.g. “Seek this document from the vendor”)</div>
+          <div className="text-[11px] font-bold text-app-text">Recommendations (explicit actions — e.g. “Seek this document from the vendor”)</div>
           <ResultTable columns={R_HEAD} rows={recRows} title="Recommendations" sheetName="Recommendations" downloadName={`Recommendations_${slug}`} />
         </div>
       )}
@@ -98,12 +98,12 @@ export default function TechnicalOffer() {
         <Field label="System (optional)" value={system} onChange={setSystem} placeholder="e.g. Radar / DGPS / EM Log" />
         <RunButton onClick={run} busy={busy} busyLabel="Building compliance matrices…">{offers.length > 1 ? `Evaluate ${offers.length} Offers` : 'Generate Compliance Matrix'}</RunButton>
         <ErrorNote>{error}</ErrorNote>
-        {busy && <div className="text-[10px] text-slate-500 flex items-center gap-1.5"><Spinner /> Each TTS section is assessed against every offer — this can take a minute.</div>}
+        {busy && <div className="text-[10px] text-app-muted flex items-center gap-1.5"><Spinner /> Each TTS section is assessed against every offer — this can take a minute.</div>}
       </Card>
 
       {res && (
         <>
-          <div className="text-[11px] text-slate-400">TTS: <span className="text-slate-200">{res.tts}</span> · {res.offerCount} offer{res.offerCount === 1 ? '' : 's'} evaluated</div>
+          <div className="text-[11px] text-app-muted">TTS: <span className="text-app-text">{res.tts}</span> · {res.offerCount} offer{res.offerCount === 1 ? '' : 's'} evaluated</div>
           {res.results.length > 1 && (() => {
             const cmp = buildComparison(res.results);
             return (
@@ -116,7 +116,7 @@ export default function TechnicalOffer() {
             );
           })()}
           {res.results.map((r, i) => <OfferResult key={i} system={res.system} r={r} />)}
-          {res.citations?.length > 0 && <div className="text-[10px] text-slate-500">Grounded in: {res.citations.join(' · ')}</div>}
+          {res.citations?.length > 0 && <div className="text-[10px] text-app-muted">Grounded in: {res.citations.join(' · ')}</div>}
         </>
       )}
 
