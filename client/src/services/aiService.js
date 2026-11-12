@@ -133,6 +133,23 @@ export async function getRepositoryDoc(id) {
   return apiFetch(`/repository/${id}`);
 }
 
+// Original uploaded file as a Blob (null if unavailable).
+export async function getRepositoryFile(id) {
+  try {
+    const token = getToken();
+    const res = await fetch(`${API_BASE}/repository/${id}/file`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    return res.ok ? await res.blob() : null;
+  } catch (_) { return null; }
+}
+
+export async function updateRepositoryDoc(id, fields) {
+  return apiFetch(`/repository/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  });
+}
+
 export async function deleteRepositoryDoc(id) {
   return apiFetch(`/repository/${id}`, { method: 'DELETE' });
 }

@@ -16,10 +16,10 @@
 // Storage layout (all under server/data/repository/):
 //   index.json        — array of metadata records (no text, kept small/fast)
 //   <id>.txt          — the extracted text for one document (may be large)
+//   <id>.bin          — the original uploaded file (vision features / re-download)
 //
-// Only the extracted text is retained (that is what every downstream tool — RAG,
-// compliance, converter, BOM, chat — consumes). Raw binaries are not stored, so a
-// scanned drawing keeps its extracted/OCR'd text but not its pixels.
+// Both the extracted text and the original file are kept, so a document uploaded
+// on one device is fully usable (including drawings) after signing in on another.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const express = require('express');
@@ -55,6 +55,8 @@ function writeIndex(records) {
 
 function textPath(id) { return path.join(REPO_DIR, `${id}.txt`); }
 
+function filePath(id) { return path.join(REPO_DIR, `${id}.bin`); }
+
 function readText(id) {
   try { return fs.readFileSync(textPath(id), 'utf8'); } catch (_) { return ''; }
 }
@@ -83,6 +85,35 @@ router.get('/:id', (req, res) => {
   } catch (err) {
     console.error('[/api/repository/:id GET]', err.message);
     res.status(err.status || 500).json({ error: err.status ? err.message : 'An unexpected server error occurred. Please try again.' });
+  }
+});
+
+// ── GET /api/repository/:id/file  → the original uploaded file ────────────────
+router.get('/:id/file', (req, res) => {
+  try {
+    const doc = readIndex().find(d => d.id === req.params.id);
+    if (!doc || !fs.existsSync(filePath(doc.id))) return res.status(404).json({ error: 'Original file not available.' });
+    res.setHeader('Content-Type', doc.mime || 'application/octet-stream');
+    res.send(fs.readFileSync(filePath(doc.id)));
+  } catch (err) {
+    console.error('[/api/repository/:id/file GET]', err.message);
+    res.status(500).json({ error: 'An unexpected server error occurred. Please try again.' });
+  }
+});
+
+// ── PATCH /api/repository/:id  → move to another project / discipline ─────────
+router.patch('/:id', express.json(), (req, res) => {
+  try {
+    const records = readIndex();
+    const doc = records.find(d => d.id === req.params.id);
+    if (!doc) return res.status(404).json({ error: 'Document not found in the repository.' });
+    if (req.body.project !== undefined)    doc.project = String(req.body.project || '').trim() || 'Unassigned';
+    if (req.body.discipline !== undefined) doc.discipline = String(req.body.discipline || '');
+    writeIndex(records);
+    res.json(doc);
+  } catch (err) {
+    console.error('[/api/repository/:id PATCH]', err.message);
+    res.status(500).json({ error: 'An unexpected server error occurred. Please try again.' });
   }
 });
 
@@ -118,6 +149,7 @@ router.post('/', upload.single('file'), async (req, res) => {
     // Persist text separately (may be large), then prepend metadata to the index.
     ensureDir();
     fs.writeFileSync(textPath(id), text);
+    fs.writeFileSync(filePath(id), req.file.buffer);   // original file, so any device can re-open it
     const records = readIndex();
     records.unshift(record);
     writeIndex(records);
@@ -142,6 +174,7 @@ router.delete('/:id', (req, res) => {
     }
     writeIndex(records.filter(d => d.id !== req.params.id));
     try { fs.unlinkSync(textPath(doc.id)); } catch (_) {}
+    try { fs.unlinkSync(filePath(doc.id)); } catch (_) {}
     res.json({ success: true, id: doc.id });
   } catch (err) {
     console.error('[/api/repository/:id DELETE]', err.message);

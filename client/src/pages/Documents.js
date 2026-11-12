@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { confirmDialog, toast } from '../components/ui/Overlays';
-import { uploadDocument, validate, saveToRepository, deleteRepositoryDoc } from '../services/aiService';
+import { validate, saveToRepository, deleteRepositoryDoc } from '../services/aiService';
 import { listUserDocs, getUserDoc, addUserDoc, removeUserDoc, listProjects, listRepositoryDocs } from '../services/docStore';
 import { DOC_ACCEPT } from '../services/fileTypes';
 
@@ -52,7 +52,6 @@ function UploadCard({ onAdded, projects = [] }) {
   const [detected, setDetected] = useState(null);
   const [project,    setProject]    = useState('Unassigned');
   const [discipline, setDiscipline] = useState('');
-  const [toRepo,     setToRepo]     = useState(false);   // also persist to shared repository
   const [batch,      setBatch]      = useState(null);   // { done, total, errors }
   const fileRef = useRef(null);
 
@@ -61,9 +60,8 @@ function UploadCard({ onAdded, projects = [] }) {
   // to the in-session picker so the document is usable immediately.
   const processOne = async (file) => {
     const cleanProject = (project || 'Unassigned').trim() || 'Unassigned';
-    const result = toRepo
-      ? await saveToRepository(file, { project: cleanProject, discipline })
-      : await uploadDocument(file);
+    // Every upload is stored on the server so it is available from any device.
+    const result = await saveToRepository(file, { project: cleanProject, discipline });
     await addUserDoc({
       id:         result.docId || result.id,
       name:       result.name,
@@ -119,7 +117,7 @@ function UploadCard({ onAdded, projects = [] }) {
     idle:     'Drag a PDF, DOCX, or image here — or click to upload',
     reading:  'Reading file…',
     ocr:      'Extracting content (text layer + vision for scanned pages)…',
-    indexing: 'Saving to your workspace…',
+    indexing: 'Saving to the server…',
     done:     detected ? `Ready — detected as “${detected}”` : 'Ready',
     error:    'Upload failed',
   }[stage];
@@ -164,13 +162,7 @@ function UploadCard({ onAdded, projects = [] }) {
               </select>
             </div>
           </div>
-          <label className="flex items-start gap-2 pt-1 cursor-pointer select-none">
-            <input type="checkbox" checked={toRepo} onChange={e => setToRepo(e.target.checked)}
-              className="mt-0.5 " />
-            <span className="text-[10px] text-app-muted leading-snug">
-              <span className="font-semibold text-app-success">Save to shared repository</span> — persists on the server across sessions (survives sign-out) and is available to all users. Leave unchecked to keep the document only for this session.
-            </span>
-          </label>
+          <p className="text-[10px] text-app-muted text-center">Documents are saved to the server — sign in from any device and they are still here.</p>
           <p className="text-[10px] text-app-muted text-center">Uploads are filed under the chosen project &amp; discipline in your hierarchical Workspace.</p>
         </div>
       )}
@@ -346,7 +338,7 @@ export default function Documents() {
       <div>
         <h1 className="page-title">Document Intelligence</h1>
         <p className="text-[11px] text-app-muted mt-0.5">
-          Upload your documents here — they are read (with vision for scanned pages), auto-classified, and made available across every tool. Documents stay in your workspace until you sign out.
+          Upload your documents here — they are read (with vision for scanned pages), auto-classified, and made available across every tool. Documents are saved on the server and stay available when you sign in from any device.
         </p>
       </div>
 

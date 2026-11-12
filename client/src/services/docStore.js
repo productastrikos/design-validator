@@ -11,7 +11,9 @@
 // a document is added or removed.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { getRepository, getRepositoryDoc } from './aiService';
+import { getRepository, getRepositoryDoc, getRepositoryFile, updateRepositoryDoc, deleteRepositoryDoc } from './aiService';
+
+const isRepoId = (id) => typeof id === 'string' && id.startsWith('REPO-');
 
 const DB_NAME = 'dv_docstore';
 const DB_VERSION = 2;
@@ -114,7 +116,11 @@ export async function addUserDoc(doc) {
 // Lightweight list (no text / blob payloads) for pickers and tables.
 export async function listUserDocs() {
   try {
-    const all = await tx(USER_STORE, 'readonly', os => reqToPromise(os.getAll()));
+    const local = await tx(USER_STORE, 'readonly', os => reqToPromise(os.getAll())).catch(() => []);
+    // Server-stored uploads follow the user to any device; the local copy is only a cache.
+    const seen = new Set(local.map(d => d.id));
+    const repo = (await listRepositoryDocs()).filter(d => !seen.has(d.id));
+    const all = [...local, ...repo];
     return all
       .map(({ id, name, type, mime, pages, textLength, addedAt, project, discipline }) =>
         ({ id, name, type, mime, pages, textLength, addedAt, project: project || 'Unassigned', discipline: discipline || '' }))
@@ -130,6 +136,17 @@ export async function listProjects() {
 
 // Reassign a document to a project / discipline (move within the workspace tree).
 export async function setDocMeta(id, { project, discipline } = {}) {
+  if (isRepoId(id)) {
+    await updateRepositoryDoc(id, { project, discipline });
+    const local = await tx(USER_STORE, 'readonly', os => reqToPromise(os.get(id))).catch(() => null);
+    if (local) {
+      if (project !== undefined)    local.project = project || 'Unassigned';
+      if (discipline !== undefined) local.discipline = discipline || '';
+      await tx(USER_STORE, 'readwrite', os => os.put(local)).catch(() => {});
+    }
+    emitChange();
+    return local || { id };
+  }
   const rec = await getUserDoc(id);
   if (!rec) return null;
   if (project !== undefined)    rec.project = project || 'Unassigned';
@@ -141,11 +158,20 @@ export async function setDocMeta(id, { project, discipline } = {}) {
 
 export async function getUserDoc(id) {
   if (!id) return null;
-  try { return await tx(USER_STORE, 'readonly', os => reqToPromise(os.get(id))); }
-  catch (_) { return null; }
+  let local = null;
+  try { local = await tx(USER_STORE, 'readonly', os => reqToPromise(os.get(id))); } catch (_) {}
+  if (local || !isRepoId(id)) return local;
+  // Not cached on this device (e.g. signed in elsewhere): rebuild from the server.
+  const full = await getRepositoryDocFull(id);
+  if (!full) return null;
+  const file = await getRepositoryFile(id);
+  const rec = { ...full, file, project: full.project || 'Unassigned', discipline: full.discipline || '' };
+  try { await tx(USER_STORE, 'readwrite', os => os.put(rec)); } catch (_) {}
+  return rec;
 }
 
 export async function removeUserDoc(id) {
+  if (isRepoId(id)) await deleteRepositoryDoc(id);
   await tx(USER_STORE, 'readwrite', os => os.delete(id));
   emitChange();
 }
